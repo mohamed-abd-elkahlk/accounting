@@ -3,11 +3,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct Client {
-    #[serde(rename = "_id")] // Specify that this field maps to "_id" in MongoDB
-    pub id: ObjectId,
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>,
     pub username: String,
     pub email: Option<String>,
-    pub phone: u32,
+    pub phone: String,
     pub company_name: String,
     pub city: String,
     pub address: String,
@@ -19,13 +19,13 @@ pub struct Client {
     pub outstanding_balance: f64, // Outstanding balance to be paid
 }
 #[derive(Serialize, Deserialize)]
-
+// TODO: add time
 pub struct NewClient {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
     pub username: String,
     pub email: Option<String>,
-    pub phone: u32,
+    pub phone: String,
     pub company_name: String,
     pub city: String,
     pub address: String,

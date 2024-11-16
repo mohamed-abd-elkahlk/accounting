@@ -13,10 +13,7 @@ export const NewClientSchema = z.object({
     .refine(
       (phone) => /^(?:\+20)?01\d{9}$/.test(phone),
       "Invalid Egyptian phone number"
-    )
-    .transform((value) => Number(value)) // Transform string to number
-    .refine((value) => !isNaN(value), "Phone number must be a valid number"), // Validate the transformation
-
+    ),
   company_name: z
     .string()
     .min(2, "Company Name must be at least 2 characters")

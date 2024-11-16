@@ -14,7 +14,6 @@ import { useGetClinets } from "@/api/queries";
 import { Client } from "@/types";
 
 export default function Clients() {
-  const clientCount = 50;
   const totalOwedByMe = 10000;
   const totalOwedToMe = 7500;
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,6 +26,7 @@ export default function Clients() {
   if (isPending) return <div>loading...</div>;
   // TODO: add error message view
   if (error) return <div>error{error.message}</div>;
+
   return (
     <div className="px-4 md:px-16 py-8 w-full">
       <div className="flex justify-between items-center w-full mb-4">
@@ -43,7 +43,7 @@ export default function Clients() {
             <CardTitle>Total Clients</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{clientCount}</p>
+            <p className="text-4xl font-bold">{clients.length}</p>
           </CardContent>
         </Card>
 
@@ -92,7 +92,7 @@ export default function Clients() {
 
         {/* Clients Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredClients?.length > 0 ? (
+          {filteredClients?.length! > 0 ? (
             filteredClients?.map((client: any, index: any) => (
               <Link
                 to={`/clients/${client.id}`}

@@ -6,7 +6,8 @@ use crate::{
         error::{AppResult, ErrorResponse},
     },
 };
-use futures::StreamExt;
+
+use futures::TryStreamExt;
 use mongodb::bson::{self, doc, oid::ObjectId, to_document, Bson, Document};
 use tauri::State;
 use tokio::sync::Mutex;
@@ -21,7 +22,19 @@ pub async fn add_new_client(
     let db = db.lock().await;
 
     let collection = db.get_collection::<Document>(Collection::Client);
-
+    let mut client = Client {
+        id: None,
+        username: client.username, // Assumes `NewClient` has a `username` field
+        email: client.email,       // Assumes `NewClient` has an `email` field
+        phone: client.phone,       // Assumes `NewClient` has a `phone` field
+        company_name: client.company_name, // Assumes `NewClient` has a `company_name` field
+        city: client.city,         // Assumes `NewClient` has a `city` field
+        address: client.address,   // Assumes `NewClient` has an `address` field
+        invoices: Vec::new(),      // Assuming new client has no invoices by default
+        total_owed: 0.0,           // Assuming new client has no debt
+        total_paid: 0.0,           // Assuming new client has not paid anything yet
+        outstanding_balance: 0.0,  // Assuming no outstanding balance initially
+    };
     // Serialize the client data into a BSON document
     let doc = to_document(&client).map_err(|e| {
         ErrorResponse::new(400, "Failed to serialize client data", Some(e.to_string()))
@@ -38,45 +51,31 @@ pub async fn add_new_client(
         _ => return Err(ErrorResponse::new(500, "Invalid inserted ID", None)),
     };
     // Return the newly created Client struct with necessary fields populated
-    Ok(Client {
-        id: inserted_id,
-        username: client.username, // Assumes `NewClient` has a `username` field
-        email: client.email,       // Assumes `NewClient` has an `email` field
-        phone: client.phone,       // Assumes `NewClient` has a `phone` field
-        company_name: client.company_name, // Assumes `NewClient` has a `company_name` field
-        city: client.city,         // Assumes `NewClient` has a `city` field
-        address: client.address,   // Assumes `NewClient` has an `address` field
-        invoices: Vec::new(),      // Assuming new client has no invoices by default
-        total_owed: 0.0,           // Assuming new client has no debt
-        total_paid: 0.0,           // Assuming new client has not paid anything yet
-        outstanding_balance: 0.0,  // Assuming no outstanding balance initially
-    })
+    client.id = Some(inserted_id);
+    Ok(client)
 }
 
 #[tauri::command]
 pub async fn list_all_clients(db: State<'_, Mutex<MongoDbState>>) -> AppResult<Vec<Client>> {
     let db = db.lock().await;
+    let collection = db.get_collection::<Client>(Collection::Client);
 
-    // Attempt to fetch the collection from the database
-    let collection = db.get_collection::<Document>(Collection::Client);
-
-    // Perform the find operation and handle errors with map_err
-    let cursor = collection
-        .find(doc! {}) // You can customize your query here
+    // Perform the query to fetch all documents
+    let mut cursor = collection
+        .find(doc! {})
         .await
-        .map_err(|e| ErrorResponse::new(500, "Failed to find clients", Some(e.to_string())))?;
+        .map_err(|e| ErrorResponse::new(500, "Failed to fetch clients", Some(e.to_string())))?;
 
-    // Collect the documents from the cursor into a vector
-    let clients: Vec<Client> = cursor
-        .filter_map(|doc| async {
-            doc.ok().and_then(|d| {
-                // You can customize how to deserialize the client here
-                bson::from_document::<Client>(d).ok()
-            })
-        })
-        .collect()
-        .await;
+    // Collect all documents into a Vec<Client>
+    let mut clients: Vec<Client> = Vec::new();
 
+    while let Some(doc) = cursor
+        .try_next()
+        .await
+        .map_err(|e| ErrorResponse::new(500, "fiald to parese client data", Some(e.to_string())))?
+    {
+        clients.push(doc);
+    }
     Ok(clients)
 }
 

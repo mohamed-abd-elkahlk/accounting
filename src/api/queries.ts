@@ -5,7 +5,7 @@ import {
   useQueryClient,
   useInfiniteQuery,
 } from "@tanstack/react-query";
-import { createNewClient, getAllClient } from ".";
+import { createNewClient, getAllClients } from ".";
 import { QUERY_KEYS } from "./qurieskeys";
 
 // ============================================================
@@ -27,7 +27,7 @@ export const useCreateNewClient = () => {
 
 export const useGetClinets = () => {
   return useQuery({
-    queryFn: () => getAllClient(),
+    queryFn: () => getAllClients(),
     queryKey: [QUERY_KEYS.GET_ClINET],
   });
 };

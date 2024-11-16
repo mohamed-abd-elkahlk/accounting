@@ -30,7 +30,7 @@ export default function ClientForm({ action }: { action: string }) {
       city: "",
       company_name: "",
       email: "",
-      phone: 0,
+      phone: "",
     },
   });
 
@@ -45,6 +45,7 @@ export default function ClientForm({ action }: { action: string }) {
       form.reset();
       return toast({
         title: "Client added successfully",
+        variant: "success",
       });
     } catch (error) {
       toast({
