@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as ToastPrimitives from "@radix-ui/react-toast";
 import { cva, type VariantProps } from "class-variance-authority";
-import { X } from "lucide-react";
+import { X, CheckCircle, AlertCircle } from "lucide-react"; // Import additional icons
 
 import { cn } from "@/lib/utils";
 
@@ -30,7 +30,7 @@ const toastVariants = cva(
         default: "border bg-background text-foreground",
         destructive:
           "destructive group border-destructive bg-destructive text-destructive-foreground",
-        success: "border-green-500 bg-green-100 text-green-700", // Example success styles
+        success: "border-green-500 bg-green-100 text-green-700", // Success styles
       },
     },
     defaultVariants: {
@@ -39,17 +39,44 @@ const toastVariants = cva(
   }
 );
 
+const ToastIcon = ({
+  variant,
+}: {
+  variant?: "default" | "destructive" | "success" | null | undefined;
+}) => {
+  switch (variant) {
+    case "success":
+      return <CheckCircle className="h-5 w-5 text-green-500" />;
+    case "destructive":
+      return <AlertCircle className="h-5 w-5 text-red-500" />;
+    default:
+      return null;
+  }
+};
+
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
     VariantProps<typeof toastVariants>
->(({ className, variant, ...props }, ref) => {
+>(({ className, variant, children, ...props }, ref) => {
   return (
     <ToastPrimitives.Root
       ref={ref}
-      className={cn(toastVariants({ variant }), className)}
+      className={cn(
+        "flex items-center space-x-3", // Align icon and children
+        toastVariants({ variant }),
+        className
+      )}
       {...props}
-    />
+    >
+      {/* Icon */}
+      <div className="shrink-0">
+        <ToastIcon variant={variant} />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1">{children}</div>
+    </ToastPrimitives.Root>
   );
 });
 Toast.displayName = ToastPrimitives.Root.displayName;
