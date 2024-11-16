@@ -12,7 +12,10 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import DialogCloseButton from "../shared/DialogCloseButton";
+import { DialogFooter } from "../ui/dialog";
+import { DialogClose } from "@radix-ui/react-dialog";
+import { Button } from "../ui/button";
+// import DialogCloseButton from "../shared/DialogCloseButton";
 export default function ItemForm({ action }: { action: string }) {
   const form = useForm<z.infer<typeof itemSchema>>({
     resolver: zodResolver(itemSchema),
@@ -71,7 +74,22 @@ export default function ItemForm({ action }: { action: string }) {
             </FormItem>
           )}
         />
-        <DialogCloseButton action={action} />
+        <div className="flex justify-end gap-3">
+          <DialogFooter>
+            <Button type="submit">
+              {false
+                ? "Loading..."
+                : action === "create"
+                ? "Confirm"
+                : "Update"}
+            </Button>
+          </DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">
+              Close
+            </Button>
+          </DialogClose>
+        </div>
       </form>
     </Form>
   );

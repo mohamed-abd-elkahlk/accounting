@@ -1,7 +1,9 @@
-use mongodb::{options::ClientOptions, Client, Database};
+use mongodb::{options::ClientOptions, Client, Collection as MongoCollection, Database};
 use std::env;
+
+use crate::schema::collections::Collection;
+
 pub struct MongoDbState {
-    pub client: Client,
     pub database: Database,
 }
 pub async fn init_db() -> MongoDbState {
@@ -13,5 +15,12 @@ pub async fn init_db() -> MongoDbState {
 
     let client = Client::with_options(client_options).expect("Failed to initialize client");
     let database = client.database("accounting");
-    MongoDbState { client, database }
+    MongoDbState { database }
+}
+
+impl MongoDbState {
+    /// Dynamically fetch a MongoDB collection
+    pub fn get_collection<T: Send + Sync>(&self, collection: Collection) -> MongoCollection<T> {
+        self.database.collection(collection.as_str())
+    }
 }

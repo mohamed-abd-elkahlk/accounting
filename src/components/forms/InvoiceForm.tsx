@@ -11,8 +11,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import DialogCloseButton from "../shared/DialogCloseButton";
 import { Button } from "@/components/ui/button";
+import { DialogClose } from "@radix-ui/react-dialog";
+import { DialogFooter } from "../ui/dialog";
 
 export default function InvoiceForm({ action }: { action: string }) {
   const form = useForm<z.infer<typeof newInvoiceSchema>>({
@@ -205,8 +206,21 @@ export default function InvoiceForm({ action }: { action: string }) {
           />
         </div>
 
-        <div className="flex justify-end space-x-4">
-          <DialogCloseButton action={action} />
+        <div className="flex justify-end gap-3">
+          <DialogFooter>
+            <Button type="submit">
+              {false
+                ? "Loading..."
+                : action === "create"
+                ? "Confirm"
+                : "Update"}
+            </Button>
+          </DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">
+              Close
+            </Button>
+          </DialogClose>
         </div>
       </form>
     </Form>

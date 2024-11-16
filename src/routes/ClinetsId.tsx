@@ -58,7 +58,7 @@ export default function ClientDetails() {
       {/* Header Section */}
       <div className="flex items-center mb-8">
         <img
-          src={client.profilePic}
+          src={client.profilePic || "/user.png"}
           alt={`${client.username}'s profile`}
           className="w-24 h-24 rounded-full mr-6"
         />

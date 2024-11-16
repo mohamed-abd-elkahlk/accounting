@@ -7,21 +7,31 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+mod commands;
 mod db;
+mod schema;
+
+use commands::client_command::add_new_client;
 use db::init_db;
 use dotenvy::dotenv;
-use std::sync::Arc;
+use tauri::{async_runtime, Manager};
 use tokio::sync::Mutex;
 
-#[tokio::main]
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-async fn main() {
+fn main() {
     dotenv().ok();
-    let database = init_db().await;
+
+    // Initialize the database using Tauri's async runtime
+    let database = async_runtime::block_on(async { init_db().await });
+
+    // Build and run the Tauri app
     tauri::Builder::default()
+        .setup(move |app| {
+            // Share the database state with the app using a Mutex
+            app.manage(Mutex::new(database));
+            Ok(())
+        })
         .plugin(tauri_plugin_shell::init())
-        .manage(Arc::new(Mutex::new(database))) // Store MongoDB state in Tauri
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![greet, add_new_client])
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .expect("Error while running Tauri application");
 }

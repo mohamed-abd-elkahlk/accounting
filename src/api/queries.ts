@@ -1,4 +1,4 @@
-import { Client } from "@/types";
+import { NewClient } from "@/types";
 import {
   useQuery,
   useMutation,
@@ -16,7 +16,7 @@ export const useCreateNewClient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (clinet: Client) => createNewClient(clinet),
+    mutationFn: (clinet: NewClient) => createNewClient(clinet),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_ClINET],

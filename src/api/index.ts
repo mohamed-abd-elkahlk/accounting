@@ -1,21 +1,18 @@
-import { Client } from "@/types";
+import { Client, NewClient } from "@/types";
 const baseUrl = import.meta.env.VITE_API_URL;
-export async function createNewClient(client: Client) {
+import { invoke } from "@tauri-apps/api/core";
+
+export async function createNewClient(client: NewClient): Promise<Client> {
   try {
-    const req = await fetch(`${baseUrl}/clients`, {
-      method: "post",
-      body: JSON.stringify(client),
-      headers: {
-        "Content-Type": "application/json;",
-      },
-    });
-    const res = await req.json();
-    return res;
+    // Make the Tauri command call
+    const data = await invoke<Client>("add_new_client", { client });
+    console.log("Client created successfully:", data);
+    return data;
   } catch (error) {
-    console.log(error);
+    console.error("Failed to create client:", error);
+    throw error; // Re-throw the error for higher-level handling if needed
   }
 }
-
 export async function getAllClient() {
   try {
     const req = await fetch(`${baseUrl}/clients`);

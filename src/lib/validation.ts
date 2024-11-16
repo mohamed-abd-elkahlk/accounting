@@ -1,25 +1,32 @@
 import { z } from "zod";
 
-export const UserSchema = z.object({
+export const NewClientSchema = z.object({
   username: z
     .string()
-    .min(2, "Name must be at least 2 characters")
-    .max(50, "Name must be at most 50 characters"),
+    .min(2, "Username must be at least 2 characters")
+    .max(50, "Username must be at most 50 characters"),
+
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
+
   phone: z
     .string()
     .refine(
       (phone) => /^(?:\+20)?01\d{9}$/.test(phone),
       "Invalid Egyptian phone number"
-    ),
-  companyName: z
+    )
+    .transform((value) => Number(value)) // Transform string to number
+    .refine((value) => !isNaN(value), "Phone number must be a valid number"), // Validate the transformation
+
+  company_name: z
     .string()
     .min(2, "Company Name must be at least 2 characters")
     .max(50, "Company Name must be at most 50 characters"),
+
   city: z
     .string()
     .min(2, "City name must be at least 2 characters")
     .max(50, "City name must be at most 50 characters"),
+
   address: z
     .string()
     .min(5, "Address must be at least 5 characters")

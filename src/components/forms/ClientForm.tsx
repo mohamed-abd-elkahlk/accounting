@@ -1,4 +1,4 @@
-import { UserSchema } from "@/lib/validation";
+import { NewClientSchema } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,42 +12,47 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import DialogCloseButton from "../shared/DialogCloseButton";
 import { useCreateNewClient } from "@/api/queries";
 import { useToast } from "@/hooks/use-toast";
 import { useRef } from "react";
+
+import DialogCloseButton from "../shared/DialogCloseButton";
 export default function ClientForm({ action }: { action: string }) {
   const { mutateAsync: createClinet, isPending: isCreatingClient } =
     useCreateNewClient();
   const { toast } = useToast();
   const dialogRef = useRef<HTMLButtonElement | null>(null); // Ensure the ref type matches the button element
-  const form = useForm<z.infer<typeof UserSchema>>({
-    resolver: zodResolver(UserSchema),
+  const form = useForm<z.infer<typeof NewClientSchema>>({
+    resolver: zodResolver(NewClientSchema),
     defaultValues: {
       username: "",
       address: "",
       city: "",
-      companyName: "",
+      company_name: "",
       email: "",
-      phone: "",
+      phone: 0,
     },
   });
 
   // 2. Define a submit handler.
-  async function onSubmit(values: z.infer<typeof UserSchema>) {
-    const clinet = await createClinet(values);
-    if (!clinet)
+  async function onSubmit(values: z.infer<typeof NewClientSchema>) {
+    try {
+      await createClinet(values);
+
+      if (dialogRef.current) {
+        dialogRef.current.click();
+      }
+      form.reset();
       return toast({
+        title: "Client added successfully",
+      });
+    } catch (error) {
+      toast({
         title: "Faild to add new client",
         variant: "destructive",
       });
-    form.reset();
-    if (dialogRef.current) {
-      dialogRef.current.click();
+      console.log(error);
     }
-    return toast({
-      title: "Client added successfully",
-    });
   }
   return (
     <Form {...form}>
@@ -80,7 +85,7 @@ export default function ClientForm({ action }: { action: string }) {
         />
         <FormField
           control={form.control}
-          name="companyName"
+          name="company_name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Company Name</FormLabel>
@@ -131,7 +136,7 @@ export default function ClientForm({ action }: { action: string }) {
           )}
         />
         <DialogCloseButton
-          action={action}
+          action="create"
           pending={isCreatingClient}
           ref={dialogRef}
         />

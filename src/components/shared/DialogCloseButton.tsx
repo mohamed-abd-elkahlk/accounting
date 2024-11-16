@@ -11,7 +11,7 @@ const DialogCloseButton = forwardRef(
   ) => (
     <div className="flex justify-end gap-3">
       <DialogFooter>
-        <Button type="submit">
+        <Button type="submit" disabled={pending}>
           {pending ? "Loading..." : action === "create" ? "Confirm" : "Update"}
         </Button>
       </DialogFooter>
