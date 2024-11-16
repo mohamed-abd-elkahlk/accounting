@@ -7,6 +7,7 @@ use crate::{
     },
 };
 
+use chrono::Utc;
 use futures::TryStreamExt;
 use mongodb::bson::{self, doc, oid::ObjectId, to_document, Bson, Document};
 use tauri::State;
@@ -34,6 +35,8 @@ pub async fn add_new_client(
         total_owed: 0.0,           // Assuming new client has no debt
         total_paid: 0.0,           // Assuming new client has not paid anything yet
         outstanding_balance: 0.0,  // Assuming no outstanding balance initially
+        created_at: Utc::now(),
+        updated_at: Utc::now(),
     };
     // Serialize the client data into a BSON document
     let doc = to_document(&client).map_err(|e| {
