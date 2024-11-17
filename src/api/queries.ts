@@ -5,7 +5,13 @@ import {
   useQueryClient,
   useInfiniteQuery,
 } from "@tanstack/react-query";
-import { createNewClient, getAllClients } from ".";
+import {
+  createNewClient,
+  deleteClientById,
+  getAllClients,
+  getCLientById,
+  updateCLientById,
+} from ".";
 import { QUERY_KEYS } from "./qurieskeys";
 
 // ============================================================
@@ -24,11 +30,40 @@ export const useCreateNewClient = () => {
     },
   });
 };
+export const useUpdateClient = (clientId: string) => {
+  const queryClient = useQueryClient();
 
+  return useMutation({
+    mutationFn: (client: NewClient) => updateCLientById(clientId, client),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ClINET] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_ClINET_BY_ID, clientId],
+      });
+    },
+  });
+};
+export const useDeleteClient = (clientId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => deleteClientById(clientId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ClINET] });
+    },
+  });
+};
 export const useGetClinets = () => {
   return useQuery({
     queryFn: () => getAllClients(),
     queryKey: [QUERY_KEYS.GET_ClINET],
+  });
+};
+
+export const useGetClinetById = (clientId: string) => {
+  return useQuery({
+    queryFn: () => getCLientById(clientId),
+    queryKey: [QUERY_KEYS.GET_ClINET_BY_ID, clientId],
   });
 };
 // export const useSignInAccount = () => {

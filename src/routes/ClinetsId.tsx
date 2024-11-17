@@ -1,41 +1,23 @@
 import { useParams } from "react-router-dom";
-import {
-  FaPhone,
-  FaEnvelope,
-  FaBuilding,
-  FaDollarSign,
-  FaCalendar,
-  FaUser,
-} from "react-icons/fa";
+import { FaPhone, FaEnvelope, FaCalendar, FaStore } from "react-icons/fa";
+import { useGetClinetById } from "@/api/queries";
+import { Button } from "@/components/ui/button";
+import UpdateClient from "@/components/shared/UpdateClient";
+import AlertDialogButton from "@/components/shared/AlertDialogButton";
 
 export default function ClientDetails() {
-  const { ClientId } = useParams(); // Get client ID from the URL
+  const { clientsId } = useParams(); // Extract clientsId from URL
 
-  const client = {
-    id: ClientId,
-    username: `Username 1`,
-    phone: "+201112345678",
-    email: `user1@example.com`,
-    companyName: `Sample Company 1`,
-    companyAddress: "456 Business Rd, Cairo, Egypt",
-    city: "Cairo",
-    country: "Egypt",
-    profilePic: `https://via.placeholder.com/150?text=User+${1}`,
-    status: "active", // Status of the client
-    registrationDate: "2024-01-01",
-    totalOwedByClient: 5000,
-    totalOwedToClient: 3000,
-    lastPaymentDate: "2024-02-10",
-    notes: "Client prefers email communication",
-    billingFrequency: "monthly",
-    preferredPaymentMethod: "bank transfer",
-    contactPerson: {
-      name: "Contact Name",
-      position: "Accountant",
-      phone: "+201123456789",
-      email: "contact@example.com",
-    },
-  };
+  const {
+    data: client,
+    error,
+    isError,
+    isPending,
+  } = useGetClinetById(clientsId!);
+  console.log(client?.username);
+
+  if (isError) return <div>{error.message}</div>;
+  if (isPending) return <div>Loding...</div>;
 
   // Function to determine the badge color based on status
   const getStatusBadge = (status: string) => {
@@ -65,10 +47,14 @@ export default function ClientDetails() {
         <div>
           <h1 className="text-2xl font-semibold flex items-center">
             {client.username}
-            <div className="ml-4">{getStatusBadge(client.status)}</div>{" "}
+            <div className="ml-4">{getStatusBadge("active")}</div>{" "}
             {/* Status Badge */}
           </h1>
-          <p className="text-gray-600">{client.companyName}</p>
+          <p className="text-gray-600">{client.company_name}</p>
+        </div>
+        <div className="flex gap-6 ml-auto">
+          <UpdateClient client={client} />
+          <AlertDialogButton clientId={client._id.$oid} />
         </div>
       </div>
 
@@ -79,13 +65,19 @@ export default function ClientDetails() {
             Outstanding Balance
           </h3>
           <p className="text-2xl font-bold text-blue-600">
-            ${client.totalOwedByClient}
+            $
+            {client.totalOwed === undefined
+              ? "0"
+              : client.totalOwed?.toLocaleString()}
           </p>
         </div>
         <div className="bg-green-100 p-4 rounded-lg shadow-lg text-center">
           <h3 className="text-xl font-semibold text-green-600">Total Paid</h3>
           <p className="text-2xl font-bold text-green-600">
-            ${client.totalOwedToClient}
+            $
+            {client.totalPaid === undefined
+              ? "0"
+              : client.totalPaid?.toLocaleString()}
           </p>
         </div>
         <div className="bg-yellow-100 p-4 rounded-lg shadow-lg text-center">
@@ -93,7 +85,8 @@ export default function ClientDetails() {
             Last Payment Date
           </h3>
           <p className="text-2xl font-bold text-yellow-600">
-            {client.lastPaymentDate}
+            {/* {client.lastPaymentDate} */}
+            2024-02-10
           </p>
         </div>
       </div>
@@ -103,8 +96,8 @@ export default function ClientDetails() {
         <h2 className="text-xl font-semibold mb-4">Client Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <p>
-            <FaBuilding className="inline mr-2 text-gray-700" />{" "}
-            <strong>Company:</strong> {client.companyName}
+            <FaStore className="inline mr-2 text-gray-700" />{" "}
+            <strong>Company:</strong> {client.company_name}
           </p>
           <p>
             <FaPhone className="inline mr-2 text-blue-600" />{" "}
@@ -116,47 +109,24 @@ export default function ClientDetails() {
           </p>
           <p>
             <FaCalendar className="inline mr-2 text-green-500" />{" "}
-            <strong>Registered on:</strong> {client.registrationDate}
+            <strong>Registered on:</strong>
+            {new Intl.DateTimeFormat("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }).format(new Date(client.created_at))}
           </p>
           <p>
             <strong>City:</strong> {client.city}
           </p>
           <p>
-            <strong>Country:</strong> {client.country}
+            <strong>Country:</strong> {client.city}
           </p>
           <p>
-            <strong>Address:</strong> {client.companyAddress}
+            <strong>Address:</strong> {client.address}
           </p>
           <p>
-            <strong>Status:</strong> {client.status}
-          </p>
-        </div>
-      </section>
-
-      {/* Financial Information Section */}
-      <section className="bg-white p-6 rounded-lg shadow mb-6">
-        <h2 className="text-xl font-semibold mb-4">Financial Information</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <p>
-            <FaDollarSign className="inline mr-2 text-green-500" />{" "}
-            <strong>Total Owed by Client:</strong> $
-            {client.totalOwedByClient.toLocaleString()}
-          </p>
-          <p>
-            <FaDollarSign className="inline mr-2 text-red-500" />{" "}
-            <strong>Total Owed to Client:</strong> $
-            {client.totalOwedToClient.toLocaleString()}
-          </p>
-          <p>
-            <FaCalendar className="inline mr-2 text-blue-500" />{" "}
-            <strong>Last Payment Date:</strong> {client.lastPaymentDate}
-          </p>
-          <p>
-            <strong>Billing Frequency:</strong> {client.billingFrequency}
-          </p>
-          <p>
-            <strong>Preferred Payment Method:</strong>{" "}
-            {client.preferredPaymentMethod}
+            <strong>Status:</strong> active
           </p>
         </div>
       </section>

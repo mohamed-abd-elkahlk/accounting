@@ -93,15 +93,15 @@ export default function Clients() {
         {/* Clients Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredClients?.length! > 0 ? (
-            filteredClients?.map((client: any, index: any) => (
+            filteredClients?.map((client: Client, index: any) => (
               <Link
-                to={`/clients/${client.id}`}
+                to={`/clients/${client._id.$oid}`}
                 key={index}
                 className="border border-gray-300 p-4 rounded-lg shadow-md bg-white flex flex-col items-center text-center"
               >
                 <div className="flex gap-2 flex-col items-center">
                   <img
-                    src={client.profilePic}
+                    src={client.profilePic || "/user.png"}
                     alt={`${client.username}'s profile`}
                     className="w-24 h-24 rounded-full  object-cover"
                   />
@@ -110,7 +110,7 @@ export default function Clients() {
                       {client.username}
                     </h2>
                     <p className="text-gray-600 mt-2 text-sm">
-                      {client.companyName}
+                      {client.company_name}
                     </p>
                   </div>
                 </div>

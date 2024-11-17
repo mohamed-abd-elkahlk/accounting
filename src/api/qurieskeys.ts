@@ -2,6 +2,7 @@ export enum QUERY_KEYS {
   // Clinets KEYS
   CREATE_ClINET = "createClinet",
   GET_ClINET = "getClinet",
+  GET_ClINET_BY_ID = "getClinetById",
 
   // // USER KEYS
   // GET_CURRENT_USER = "getCurrentUser",

@@ -12,47 +12,77 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import { useCreateNewClient } from "@/api/queries";
+import { useCreateNewClient, useUpdateClient } from "@/api/queries";
 import { useToast } from "@/hooks/use-toast";
 import { useRef } from "react";
 
 import DialogCloseButton from "../shared/DialogCloseButton";
-export default function ClientForm({ action }: { action: string }) {
+import { Client } from "@/types";
+export default function ClientForm({
+  action,
+  data,
+}: {
+  action: string;
+  data?: Client;
+}) {
   const { mutateAsync: createClinet, isPending: isCreatingClient } =
     useCreateNewClient();
+  const { mutateAsync: updateClinet, isPending: isUpdateingClient } =
+    useUpdateClient(data?._id.$oid!);
   const { toast } = useToast();
-  const dialogRef = useRef<HTMLButtonElement | null>(null); // Ensure the ref type matches the button element
+  const dialogRef = useRef<HTMLButtonElement | null>(null);
   const form = useForm<z.infer<typeof NewClientSchema>>({
     resolver: zodResolver(NewClientSchema),
     defaultValues: {
-      username: "",
-      address: "",
-      city: "",
-      company_name: "",
-      email: "",
-      phone: "",
+      username: data?.username || "",
+      address: data?.address || "",
+      city: data?.city || "",
+      company_name: data?.company_name || "",
+      email: data?.email || "",
+      phone: data?.phone || "",
     },
   });
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof NewClientSchema>) {
-    try {
-      await createClinet(values);
+    if (action === "update") {
+      try {
+        await updateClinet(values);
 
-      if (dialogRef.current) {
-        dialogRef.current.click();
+        if (dialogRef.current) {
+          dialogRef.current.click();
+        }
+        form.reset();
+        return toast({
+          title: "Client Updated successfully",
+          variant: "success",
+        });
+      } catch (error) {
+        toast({
+          title: "Faild to Update client",
+          variant: "destructive",
+        });
+        console.log(error);
       }
-      form.reset();
-      return toast({
-        title: "Client added successfully",
-        variant: "success",
-      });
-    } catch (error) {
-      toast({
-        title: "Faild to add new client",
-        variant: "destructive",
-      });
-      console.log(error);
+    } else {
+      try {
+        await createClinet(values);
+
+        if (dialogRef.current) {
+          dialogRef.current.click();
+        }
+        form.reset();
+        return toast({
+          title: "Client added successfully",
+          variant: "success",
+        });
+      } catch (error) {
+        toast({
+          title: "Faild to add new client",
+          variant: "destructive",
+        });
+        console.log(error);
+      }
     }
   }
   return (
@@ -138,7 +168,7 @@ export default function ClientForm({ action }: { action: string }) {
         />
         <DialogCloseButton
           action="create"
-          pending={isCreatingClient}
+          pending={isCreatingClient || isUpdateingClient}
           ref={dialogRef}
         />
       </form>

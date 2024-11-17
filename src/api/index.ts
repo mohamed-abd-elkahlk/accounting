@@ -1,5 +1,5 @@
 import { Client, NewClient } from "@/types";
-const baseUrl = import.meta.env.VITE_API_URL;
+// const baseUrl = import.meta.env.VITE_API_URL;
 import { invoke } from "@tauri-apps/api/core";
 
 export async function createNewClient(client: NewClient): Promise<Client> {
@@ -25,8 +25,10 @@ export async function getAllClients(): Promise<Array<Client>> {
 
 export async function getCLientById(clientId: string): Promise<Client> {
   try {
+    console.log(clientId);
+
     const data = await invoke<Client>("find_client_by_id", {
-      client_id: clientId,
+      clientId, // Must match the Rust parameter name
     });
     return data;
   } catch (error) {
@@ -37,11 +39,11 @@ export async function getCLientById(clientId: string): Promise<Client> {
 
 export async function updateCLientById(
   clientId: string,
-  updatedClient: Client
+  updatedClient: NewClient
 ): Promise<Client> {
   try {
     const updated = await invoke<Client>("update_client", {
-      client_id: clientId, // Pass the client ID
+      clientId, // Pass the client ID
       client: updatedClient, // Pass the updated client data
     });
 
@@ -52,10 +54,10 @@ export async function updateCLientById(
   }
 }
 
-export async function deleteClientById(clientId: string): Promise<String> {
+export async function deleteClientById(clientId: string): Promise<string> {
   try {
-    const deleted = await invoke<String>("delete_client", {
-      client_id: clientId,
+    const deleted = await invoke<string>("delete_client", {
+      clientId,
     });
     return deleted;
   } catch (error) {

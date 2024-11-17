@@ -86,15 +86,17 @@ pub async fn list_all_clients(db: State<'_, Mutex<MongoDbState>>) -> AppResult<V
 #[tauri::command]
 pub async fn update_client(
     db: State<'_, Mutex<MongoDbState>>,
-    client_id: ObjectId,
-    client: Client,
+    client_id: String,
+    client: NewClient,
 ) -> AppResult<Client> {
     let db = db.lock().await;
     let collection = db.get_collection::<Document>(Collection::Client);
+    let id: ObjectId = ObjectId::parse_str(client_id)
+        .map_err(|e| ErrorResponse::new(500, "faild to parse user Id", Some(e.to_string())))?;
     let result = collection
         .find_one_and_update(
             doc! {
-                "_id":client_id
+                "_id":id
             },
             doc! {
                 "$set": {
@@ -104,10 +106,6 @@ pub async fn update_client(
                     "company_name": client.company_name,
                     "city": client.city,
                     "address": client.address,
-                    "invoices": client.invoices,
-                    "total_owed": client.total_owed,
-                    "total_paid": client.total_paid,
-                    "outstanding_balance": client.outstanding_balance,
                 }
             },
         )
@@ -134,7 +132,7 @@ pub async fn update_client(
 // Find client by Id
 #[tauri::command]
 pub async fn find_client_by_id(
-    client_id: ObjectId,
+    client_id: String,
     db: State<'_, Mutex<MongoDbState>>,
 ) -> Result<Client, ErrorResponse> {
     let db = db.lock().await;
@@ -143,7 +141,9 @@ pub async fn find_client_by_id(
     let collection = db.get_collection::<Document>(Collection::Client);
 
     // Search for the client by ID
-    let filter = doc! { "_id": client_id };
+    let id = ObjectId::parse_str(client_id)
+        .map_err(|e| ErrorResponse::new(500, "faild to parse user Id", Some(e.to_string())))?;
+    let filter = doc! { "_id": id};
     let client_doc = collection
         .find_one(filter)
         .await
@@ -166,16 +166,17 @@ pub async fn find_client_by_id(
 #[tauri::command]
 pub async fn delete_client(
     db: State<'_, Mutex<MongoDbState>>,
-    client_id: ObjectId,
+    client_id: String,
 ) -> AppResult<String> {
     // Lock the database to safely access it
     let db = db.lock().await;
     let collection = db.get_collection::<Document>(Collection::Client);
-
+    let id: ObjectId = ObjectId::parse_str(client_id.clone())
+        .map_err(|e| ErrorResponse::new(500, "faild to parse user Id", Some(e.to_string())))?;
     // Perform the delete operation
     let result = collection
         .delete_one(
-            doc! { "_id": client_id }, // Filter by client ID
+            doc! { "_id": id}, // Filter by client ID
         )
         .await
         .map_err(|e| ErrorResponse::new(500, "Failed to delete client", Some(e.to_string())))?;
