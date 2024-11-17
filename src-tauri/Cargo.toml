@@ -19,7 +19,6 @@ serde_json = "1"
 futures = "0.3.28"
 tokio = { version = "1.32.0", features = ["full"] }
 dotenvy = "0.15.7"
-chrono = { version = "0.4.38", features = ["serde"] }
 
 
 [dependencies.mongodb]

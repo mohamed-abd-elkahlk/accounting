@@ -5,9 +5,15 @@ mod commands;
 mod db;
 mod schema;
 
-use commands::client_command::{
-    add_new_client, delete_client, find_client_by_id, list_all_clients, update_client,
+use commands::{
+    client_command::{
+        add_new_client, delete_client, find_client_by_id, list_all_clients, update_client,
+    },
+    product_command::{
+        create_product, delete_product, get_all_products, get_product_by_id, update_product,
+    },
 };
+
 use db::init_db;
 use dotenvy::dotenv;
 use tauri::{async_runtime, Manager};
@@ -32,7 +38,12 @@ fn main() {
             list_all_clients,
             update_client,
             find_client_by_id,
-            delete_client
+            delete_client,
+            create_product,
+            delete_product,
+            get_all_products,
+            get_product_by_id,
+            update_product,
         ])
         .run(tauri::generate_context!())
         .expect("Error while running Tauri application");

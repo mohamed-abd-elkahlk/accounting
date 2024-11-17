@@ -1,5 +1,4 @@
-use chrono::{DateTime, Utc};
-use mongodb::bson::oid::ObjectId;
+use mongodb::bson::{oid::ObjectId, DateTime};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -20,8 +19,8 @@ pub struct Client {
     pub outstanding_balance: f64, // Outstanding balance to be paid
 
     // Date fields
-    pub created_at: DateTime<Utc>, // When the client record was created
-    pub updated_at: DateTime<Utc>, // When the client record was last updated
+    pub created_at: DateTime, // When the client record was created
+    pub updated_at: DateTime, // When the client record was last updated
 }
 #[derive(Serialize, Deserialize)]
 // TODO: add time

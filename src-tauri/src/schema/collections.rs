@@ -1,5 +1,6 @@
 pub enum Collection {
     Client,
+    Product,
 }
 
 impl Collection {
@@ -7,6 +8,7 @@ impl Collection {
     pub fn as_str(&self) -> &str {
         match self {
             Collection::Client => "clients",
+            Collection::Product => "products",
         }
     }
 }

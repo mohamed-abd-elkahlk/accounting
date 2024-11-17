@@ -1,15 +1,16 @@
 use crate::{
     db::MongoDbState,
     schema::{
-        client::{Client, NewClient},
+        client_schema::{Client, NewClient},
         collections::Collection,
         error::{AppResult, ErrorResponse},
     },
 };
 
-use chrono::Utc;
 use futures::TryStreamExt;
-use mongodb::bson::{self, doc, oid::ObjectId, to_document, Bson, Document};
+use mongodb::bson::{
+    self, doc, oid::ObjectId, to_document, Bson, DateTime as MongoDateTime, Document,
+};
 use tauri::State;
 use tokio::sync::Mutex;
 
@@ -35,8 +36,8 @@ pub async fn add_new_client(
         total_owed: 0.0,           // Assuming new client has no debt
         total_paid: 0.0,           // Assuming new client has not paid anything yet
         outstanding_balance: 0.0,  // Assuming no outstanding balance initially
-        created_at: Utc::now(),
-        updated_at: Utc::now(),
+        created_at: MongoDateTime::now(),
+        updated_at: MongoDateTime::now(),
     };
     // Serialize the client data into a BSON document
     let doc = to_document(&client).map_err(|e| {
@@ -87,27 +88,28 @@ pub async fn list_all_clients(db: State<'_, Mutex<MongoDbState>>) -> AppResult<V
 pub async fn update_client(
     db: State<'_, Mutex<MongoDbState>>,
     client_id: String,
-    client: NewClient,
+    updated_fields: Document, // Use a `Document` for flexibility in updating fields
 ) -> AppResult<Client> {
     let db = db.lock().await;
     let collection = db.get_collection::<Document>(Collection::Client);
     let id: ObjectId = ObjectId::parse_str(client_id)
         .map_err(|e| ErrorResponse::new(500, "faild to parse user Id", Some(e.to_string())))?;
+
+    // Add `updated_at` to the update document
+    let mut updated_fields = updated_fields.clone();
+    updated_fields.insert("updated_at", MongoDateTime::now());
+
+    // Prepare the update document with `$set` for partial updates
+    let update_doc = doc! {
+        "$set": updated_fields
+    };
+
     let result = collection
         .find_one_and_update(
             doc! {
                 "_id":id
             },
-            doc! {
-                "$set": {
-                    "username": client.username,
-                    "email": client.email,
-                    "phone": client.phone,
-                    "company_name": client.company_name,
-                    "city": client.city,
-                    "address": client.address,
-                }
-            },
+            update_doc,
         )
         .await
         .map_err(|e| {
