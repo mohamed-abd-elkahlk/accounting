@@ -1,13 +1,11 @@
 export enum QUERY_KEYS {
   // Clinets KEYS
-  CREATE_ClINET = "createClinet",
   GET_ClINET = "getClinet",
   GET_ClINET_BY_ID = "getClinetById",
 
-  // // USER KEYS
-  // GET_CURRENT_USER = "getCurrentUser",
-  // GET_USERS = "getUsers",
-  // GET_USER_BY_ID = "getUserById",
+  // Product KEYS
+  GET_PRODUCT_BY_ID = "getProdutById",
+  GET_ALL_PRODUCT = "getAllPorduct",
 
   // // POST KEYS
   // GET_POSTS = "getPosts",

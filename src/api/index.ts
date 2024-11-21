@@ -1,6 +1,10 @@
-import { Client, NewClient } from "@/types";
+import { Client, NewClient, NewProduct, Product } from "@/types";
 // const baseUrl = import.meta.env.VITE_API_URL;
 import { invoke } from "@tauri-apps/api/core";
+
+// ============================================================
+// Clinets API Calls
+// ============================================================
 
 export async function createNewClient(client: NewClient): Promise<Client> {
   try {
@@ -63,5 +67,62 @@ export async function deleteClientById(clientId: string): Promise<string> {
   } catch (error) {
     console.log(error);
     throw error; // Re-throw the error for higher-level handling if needed
+  }
+}
+
+// ============================================================
+// Product API Calls
+// ============================================================
+
+export async function createProudct(product: NewProduct): Promise<Product> {
+  try {
+    const data = invoke<Product>("create_product", product);
+    return data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+export async function deleteProduct(productId: string): Promise<string> {
+  try {
+    let data = await invoke<string>("delete_product", {
+      productId,
+    });
+    return data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+export async function getAllProducts(): Promise<Product[]> {
+  try {
+    let data = await invoke<Product[]>("get_all_products");
+    return data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+export async function getProductById(productId: string) {
+  try {
+    let data = await invoke<Product>("get_product_by_id", {
+      productId,
+    });
+    return data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+export async function updateProductById(
+  productId: string,
+  product: Product
+): Promise<Product> {
+  try {
+    let data = await invoke<Product>("update_product", { product, productId });
+    return data;
+  } catch (error) {
+    console.log(error);
+    throw error;
   }
 }

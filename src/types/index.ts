@@ -1,4 +1,4 @@
-import { NewClientSchema } from "@/lib/validation";
+import { itemSchema, NewClientSchema } from "@/lib/validation";
 import { z } from "zod";
 
 export type Client = {
@@ -19,5 +19,17 @@ export type Client = {
   created_at: string;
   updated_at: string;
 };
+export type Product = {
+  _id: { $oid: string };
+  name: string;
+  discription?: string | null;
+  tags: string[];
+  price: string;
+  stock: string;
+  created_at: string;
+  updated_at: string;
+};
 
 export type NewClient = z.infer<typeof NewClientSchema>;
+
+export type NewProduct = z.infer<typeof itemSchema>;
