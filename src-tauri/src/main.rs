@@ -16,35 +16,48 @@ use commands::{
 
 use db::init_db;
 use dotenvy::dotenv;
-use tauri::{async_runtime, Manager};
+use logger::setup_logger;
+use tauri::async_runtime;
 use tokio::sync::Mutex;
 
 fn main() {
+    // Load environment variables
     dotenv().ok();
 
-    // Initialize the database using Tauri's async runtime
-    let database = async_runtime::block_on(async { init_db().await });
+    // Set up logging
+    setup_logger();
 
-    // Build and run the Tauri app
-    tauri::Builder::default()
-        .setup(move |app| {
-            // Share the database state with the app using a Mutex
-            app.manage(Mutex::new(database));
-            Ok(())
-        })
-        .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![
-            add_new_client,
-            list_all_clients,
-            update_client,
-            find_client_by_id,
-            delete_client,
-            create_product,
-            delete_product,
-            get_all_products,
-            get_product_by_id,
-            update_product,
-        ])
-        .run(tauri::generate_context!())
-        .expect("Error while running Tauri application");
+    // Initialize the database and handle errors
+    let database_state = async_runtime::block_on(async { init_db().await });
+
+    match database_state {
+        Ok(db_state) => {
+            // Log successful database initialization
+            logger::log_info("Database connected", 200, Some("Connection successful"));
+
+            // Build and run the Tauri app
+            tauri::Builder::default()
+                .plugin(tauri_plugin_shell::init())
+                .manage(Mutex::new(db_state)) // Pass database state to Tauri
+                .invoke_handler(tauri::generate_handler![
+                    add_new_client,
+                    list_all_clients,
+                    update_client,
+                    find_client_by_id,
+                    delete_client,
+                    create_product,
+                    delete_product,
+                    get_all_products,
+                    get_product_by_id,
+                    update_product,
+                ])
+                .run(tauri::generate_context!())
+                .expect("Error while running Tauri application");
+        }
+        Err(err) => {
+            // Log the error and exit the application
+            logger::log_error(&err.message, err.code, err.details.as_deref());
+            std::process::exit(1);
+        }
+    }
 }

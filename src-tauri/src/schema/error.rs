@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ErrorResponse {
     pub code: u16,               // HTTP-like status code
     pub message: String,         // Error message

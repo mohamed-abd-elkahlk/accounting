@@ -44,7 +44,27 @@ const items = [
   },
 ];
 
+import { useState, useEffect } from "react";
+import { ErrorResponse } from "@/types";
 export function AppSidebar() {
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // const setupListener = async () => {
+    //   try {
+    //     console.log("Setting up listener..."); // Debug log
+    //     unlisten = await listen<string>("db-error", (event) => {
+    //       console.log("Received event:", event); // Debug log
+    //       setError(event.payload);
+    //     });
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // };
+    // setupListener();
+    // };
+  }, []);
+
   return (
     <>
       <Sidebar variant="floating" collapsible="icon">
