@@ -1,4 +1,4 @@
-import { itemSchema } from "@/lib/validation";
+import { productSchema } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,14 +12,12 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import { DialogFooter } from "../ui/dialog";
-import { DialogClose } from "@radix-ui/react-dialog";
-import { Button } from "../ui/button";
 import { useCraeteNewProduct, useUpdateProductByID } from "@/api/queries";
 import { useToast } from "@/hooks/use-toast";
 import { useRef } from "react";
 import DialogCloseButton from "../shared/DialogCloseButton";
 import { Product } from "@/types";
+import { Textarea } from "../ui/textarea";
 // import DialogCloseButton from "../shared/DialogCloseButton";
 export default function ProductForm({
   action,
@@ -31,25 +29,23 @@ export default function ProductForm({
   const { toast } = useToast();
   const dialogRef = useRef<HTMLButtonElement | null>(null);
 
-  const {
-    mutateAsync: createProduct,
-    // isPending,
-    // error,
-  } = useCraeteNewProduct();
+  const { mutateAsync: createProduct, isPending: isCreate } =
+    useCraeteNewProduct();
 
   const { mutateAsync: updateProduct, isPending: isUpdate } =
     useUpdateProductByID(data?._id.$oid!);
-  const form = useForm<z.infer<typeof itemSchema>>({
-    resolver: zodResolver(itemSchema),
+  const form = useForm<z.infer<typeof productSchema>>({
+    resolver: zodResolver(productSchema),
     defaultValues: {
       name: data?.name || "",
       stock: data?.stock || 0,
       price: data?.price || 0,
+      discription: data?.discription || "",
     },
   });
 
   // 2. Define a submit handler.
-  async function onSubmit(values: z.infer<typeof itemSchema>) {
+  async function onSubmit(values: z.infer<typeof productSchema>) {
     if (action === "update") {
       try {
         await updateProduct(values);
@@ -96,9 +92,22 @@ export default function ProductForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Item Name</FormLabel>
+              <FormLabel>Name</FormLabel>
               <FormControl>
                 <Input placeholder="name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="discription"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea placeholder="description" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -109,7 +118,7 @@ export default function ProductForm({
           name="price"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Item Price</FormLabel>
+              <FormLabel>Price</FormLabel>
               <FormControl>
                 <Input placeholder="Price" type="number" min={0} {...field} />
               </FormControl>
@@ -122,7 +131,7 @@ export default function ProductForm({
           name="stock"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Item quantity</FormLabel>
+              <FormLabel>Quantity</FormLabel>
               <FormControl>
                 <Input placeholder="Stock" type="number" min={0} {...field} />
               </FormControl>
@@ -130,7 +139,11 @@ export default function ProductForm({
             </FormItem>
           )}
         />
-        <DialogCloseButton action="create" pending={false} ref={dialogRef} />
+        <DialogCloseButton
+          action={action}
+          pending={isUpdate || isCreate}
+          ref={dialogRef}
+        />
       </form>
     </Form>
   );

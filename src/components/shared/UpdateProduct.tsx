@@ -8,7 +8,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "../ui/button";
 import { Product } from "@/types";
-import ProductForm from "../forms/ItemsForm";
+import ProductForm from "../forms/ProductForm";
 
 export default function UpdateProduct({ product }: { product: Product }) {
   return (

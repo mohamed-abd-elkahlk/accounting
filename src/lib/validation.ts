@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const NewClientSchema = z.object({
+export const clientSchema = z.object({
   username: z
     .string()
     .min(2, "Username must be at least 2 characters")
@@ -30,7 +30,7 @@ export const NewClientSchema = z.object({
     .max(200, "Address must be at most 200 characters"),
 });
 
-export const newInvoiceSchema = z.object({
+export const invoiceSchema = z.object({
   username: z
     .string()
     .min(2, { message: "Name must be at least 2 characters" })
@@ -88,12 +88,13 @@ export const newInvoiceSchema = z.object({
     }),
 });
 
-export const itemSchema = z.object({
+export const productSchema = z.object({
   name: z
     .string()
     .min(3, { message: "Item name lenght must be more than 3" })
     .max(400, { message: "Item name lenght must be less than 400" }),
 
+  discription: z.string().optional(),
   stock: z
     .union([
       z.string().transform((val) => parseFloat(val)),

@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { FaPlus } from "react-icons/fa";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import ProductForm from "../forms/ItemsForm";
+import ProductForm from "../forms/ProductForm";
 
 export default function NewProduct() {
   return (

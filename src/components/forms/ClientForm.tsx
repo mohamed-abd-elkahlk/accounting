@@ -1,4 +1,4 @@
-import { NewClientSchema } from "@/lib/validation";
+import { clientSchema } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -31,8 +31,8 @@ export default function ClientForm({
     useUpdateClient(data?._id.$oid!);
   const { toast } = useToast();
   const dialogRef = useRef<HTMLButtonElement | null>(null);
-  const form = useForm<z.infer<typeof NewClientSchema>>({
-    resolver: zodResolver(NewClientSchema),
+  const form = useForm<z.infer<typeof clientSchema>>({
+    resolver: zodResolver(clientSchema),
     defaultValues: {
       username: data?.username || "",
       address: data?.address || "",
@@ -44,7 +44,7 @@ export default function ClientForm({
   });
 
   // 2. Define a submit handler.
-  async function onSubmit(values: z.infer<typeof NewClientSchema>) {
+  async function onSubmit(values: z.infer<typeof clientSchema>) {
     if (action === "update") {
       try {
         await updateClinet(values);

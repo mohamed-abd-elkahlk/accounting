@@ -1,4 +1,4 @@
-import { newInvoiceSchema } from "@/lib/validation";
+import { invoiceSchema } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
@@ -16,8 +16,8 @@ import { DialogClose } from "@radix-ui/react-dialog";
 import { DialogFooter } from "../ui/dialog";
 
 export default function InvoiceForm({ action }: { action: string }) {
-  const form = useForm<z.infer<typeof newInvoiceSchema>>({
-    resolver: zodResolver(newInvoiceSchema),
+  const form = useForm<z.infer<typeof invoiceSchema>>({
+    resolver: zodResolver(invoiceSchema),
     defaultValues: {
       username: "",
       address: "",
@@ -35,7 +35,7 @@ export default function InvoiceForm({ action }: { action: string }) {
     name: "goods",
   });
 
-  function onSubmit(values: z.infer<typeof newInvoiceSchema>) {
+  function onSubmit(values: z.infer<typeof invoiceSchema>) {
     console.log(values);
   }
 
