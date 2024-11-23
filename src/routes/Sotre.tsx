@@ -1,11 +1,12 @@
 import { useGetProducts } from "@/api/queries";
 import { productColumns } from "@/components/columns";
 import { DataTable } from "@/components/data-table";
+import ErrorResponsePage from "@/components/shared/ErrorResponsePage";
 import NewProduct from "@/components/shared/NewProduct";
 import StoreSkeleton from "@/components/skeleton/StoreSkeleton";
 export default function Sotre() {
   const { data: product, error, isPending } = useGetProducts();
-  if (error) return <div> Error:{error.message}</div>;
+  if (error) return <ErrorResponsePage error={error} />;
   if (isPending) return <StoreSkeleton />;
 
   return (

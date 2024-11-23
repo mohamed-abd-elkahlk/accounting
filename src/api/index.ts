@@ -1,3 +1,4 @@
+import { QueryError } from "@/components/shared/ErrorResponsePage";
 import { Client, NewClient, NewProduct, Product } from "@/types";
 // const baseUrl = import.meta.env.VITE_API_URL;
 import { invoke } from "@tauri-apps/api/core";
@@ -11,9 +12,13 @@ export async function createNewClient(client: NewClient): Promise<Client> {
     // Make the Tauri command call
     const data = await invoke<Client>("add_new_client", { client });
     return data;
-  } catch (error) {
-    console.error("Failed to create client:", error);
-    throw error; // Re-throw the error for higher-level handling if needed
+  } catch (error: any) {
+    // Handle error and re-throw as QueryError
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500; // Default to 500 if code is not provided
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
   }
 }
 
@@ -21,9 +26,13 @@ export async function getAllClients(): Promise<Array<Client>> {
   try {
     const data = await invoke<Array<Client>>("list_all_clients");
     return data;
-  } catch (error) {
-    console.log(error);
-    throw error; // Re-throw the error for higher-level handling if needed
+  } catch (error: any) {
+    // Handle error and re-throw as QueryError
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500; // Default to 500 if code is not provided
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
   }
 }
 
@@ -35,9 +44,13 @@ export async function getCLientById(clientId: string): Promise<Client> {
       clientId, // Must match the Rust parameter name
     });
     return data;
-  } catch (error) {
-    console.log(error);
-    throw error; // Re-throw the error for higher-level handling if needed
+  } catch (error: any) {
+    // Handle error and re-throw as QueryError
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500; // Default to 500 if code is not provided
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
   }
 }
 
@@ -51,9 +64,13 @@ export async function updateCLientById(
       updatedFields: updatedClient, // Pass the updated client data
     });
     return updated;
-  } catch (error) {
-    console.log(error);
-    throw error; // Re-throw the error for higher-level handling if needed
+  } catch (error: any) {
+    // Handle error and re-throw as QueryError
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500; // Default to 500 if code is not provided
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
   }
 }
 
@@ -63,9 +80,13 @@ export async function deleteClientById(clientId: string): Promise<string> {
       clientId,
     });
     return deleted;
-  } catch (error) {
-    console.log(error);
-    throw error; // Re-throw the error for higher-level handling if needed
+  } catch (error: any) {
+    // Handle error and re-throw as QueryError
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500; // Default to 500 if code is not provided
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
   }
 }
 
@@ -79,9 +100,13 @@ export async function createProudct(product: NewProduct): Promise<Product> {
       newProduct: product,
     });
     return data;
-  } catch (error) {
-    console.log(error);
-    throw error;
+  } catch (error: any) {
+    // Handle error and re-throw as QueryError
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500; // Default to 500 if code is not provided
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
   }
 }
 export async function deleteProduct(productId: string): Promise<string> {
@@ -90,18 +115,26 @@ export async function deleteProduct(productId: string): Promise<string> {
       productId,
     });
     return data;
-  } catch (error) {
-    console.log(error);
-    throw error;
+  } catch (error: any) {
+    // Handle error and re-throw as QueryError
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500; // Default to 500 if code is not provided
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
   }
 }
 export async function getAllProducts(): Promise<Product[]> {
   try {
     let data = await invoke<Product[]>("get_all_products");
     return data;
-  } catch (error) {
-    console.log(error);
-    throw error;
+  } catch (error: any) {
+    // Handle error and re-throw as QueryError
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500; // Default to 500 if code is not provided
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
   }
 }
 export async function getProductById(productId: string) {
@@ -110,9 +143,13 @@ export async function getProductById(productId: string) {
       productId,
     });
     return data;
-  } catch (error) {
-    console.log(error);
-    throw error;
+  } catch (error: any) {
+    // Handle error and re-throw as QueryError
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500; // Default to 500 if code is not provided
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
   }
 }
 export async function updateProductById(
@@ -125,8 +162,12 @@ export async function updateProductById(
       productId,
     });
     return data;
-  } catch (error) {
-    console.log(error);
-    throw error;
+  } catch (error: any) {
+    // Handle error and re-throw as QueryError
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500; // Default to 500 if code is not provided
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
   }
 }
