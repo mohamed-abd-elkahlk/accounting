@@ -12,6 +12,7 @@ import AlertDialogButton from "./AlertDialogButton";
 import UpdateProduct from "./UpdateProduct";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import ProductDetailsSkeleton from "../skeleton/ProductDetailSkeleton";
 
 export default function ProductDetails() {
   const { productId } = useParams(); // Extract productId from URL
@@ -48,7 +49,7 @@ export default function ProductDetails() {
   }, [isProductDeleteError, isDeleteSuccess, deleteResponse, toast, navigate]);
 
   if (isError) return <div>{error.message}</div>;
-  if (isPending) return <div>Loading...</div>;
+  if (isPending) return <ProductDetailsSkeleton />;
   console.log(product);
 
   // Function to determine badge color based on stock level

@@ -13,7 +13,7 @@ import { Client } from "@/types";
 export default function UpdateClient({ client }: { client: Client }) {
   return (
     <Dialog>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button className="bg-green-500 hover:bg-green-700">Update</Button>
       </DialogTrigger>
       <DialogContent>

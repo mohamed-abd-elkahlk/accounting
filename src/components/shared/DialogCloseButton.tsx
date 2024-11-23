@@ -2,6 +2,7 @@ import { DialogClose } from "@radix-ui/react-dialog";
 import { Button } from "../ui/button";
 import { DialogFooter } from "../ui/dialog";
 import { forwardRef, ForwardedRef } from "react";
+import Spiner from "./Spiner";
 
 // Forward the ref so it can be used to trigger the click event
 const DialogCloseButton = forwardRef(
@@ -12,7 +13,7 @@ const DialogCloseButton = forwardRef(
     <div className="flex justify-end gap-3">
       <DialogFooter>
         <Button type="submit" disabled={pending}>
-          {pending ? "Loading..." : action === "create" ? "Confirm" : "Update"}
+          {pending ? <Spiner /> : action === "create" ? "Confirm" : "Update"}
         </Button>
       </DialogFooter>
       <DialogClose asChild>

@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetClinets } from "@/api/queries";
 import { Client } from "@/types";
+import ClientsSkeleton from "@/components/skeleton/ClientSkeleton";
 
 export default function Clients() {
   const totalOwedByMe = 10000;
@@ -22,8 +23,7 @@ export default function Clients() {
   const filteredClients = clients?.filter((client: Client) =>
     client.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  // TODO: add skleton loader
-  if (isPending) return <div>loading...</div>;
+  if (isPending) return <ClientsSkeleton />;
   // TODO: add error message view
   if (error) return <div>error{error.message}</div>;
 

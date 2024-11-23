@@ -6,11 +6,11 @@ import AlertDialogButton from "@/components/shared/AlertDialogButton";
 import { formatData } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
-
+import ClientDetailsSkeleton from "@/components/skeleton/ClientDetailsSkeleton";
 export default function ClientDetails() {
   const { clientsId } = useParams(); // Extract clientsId from URL
-  const navigate = useNavigate();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const {
     data: client,
@@ -18,7 +18,7 @@ export default function ClientDetails() {
     isError,
     isPending,
   } = useGetClinetById(clientsId!);
-  console.log(client?.username);
+
   const {
     mutate: deleteClinet,
     isError: isDeletingError,
@@ -26,8 +26,21 @@ export default function ClientDetails() {
     isSuccess,
     data,
   } = useDeleteClient(clientsId!);
-  if (isError) return <div>{error.message}</div>;
-  if (isPending) return <div>Loding...</div>;
+
+  // Handle toast notifications and navigation
+  useEffect(() => {
+    if (isDeletingError) {
+      toast({
+        variant: "destructive",
+        title: `Failed to delete Client`,
+      });
+    }
+
+    if (isSuccess) {
+      toast({ variant: "success", title: data });
+      navigate(-1);
+    }
+  }, [isDeletingError, isSuccess, toast, navigate, data]);
 
   // Function to determine the badge color based on status
   const getStatusBadge = (status: string) => {
@@ -45,18 +58,14 @@ export default function ClientDetails() {
     );
   };
 
-  useEffect(() => {
-    if (isDeletingError) {
-      toast({
-        variant: "destructive",
-        title: `Fiald to delete Client`,
-      });
-    }
-    if (isSuccess) {
-      toast({ variant: "success", title: data });
-      navigate(-1);
-    }
-  }, [isDeletingError, isSuccess, toast, navigate, data]);
+  // Render loading and error states without early returns
+  if (isPending) {
+    return <ClientDetailsSkeleton />;
+  }
+
+  if (isError) {
+    return <div>{error.message}</div>;
+  }
 
   return (
     <div className="px-4 md:px-16 py-8 w-full">
