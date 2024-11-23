@@ -86,7 +86,7 @@ export const useGetProducts = () => {
 export const useGetProductByID = (productId: string) => {
   return useQuery({
     queryFn: () => getProductById(productId),
-    queryKey: [QUERY_KEYS.GET_PRODUCT_BY_ID],
+    queryKey: [QUERY_KEYS.GET_PRODUCT_BY_ID, productId],
   });
 };
 
