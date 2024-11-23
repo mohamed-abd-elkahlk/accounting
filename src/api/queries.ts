@@ -1,4 +1,4 @@
-import { NewClient, NewProduct, Product } from "@/types";
+import { NewClient, NewProduct } from "@/types";
 import {
   useQuery,
   useMutation,

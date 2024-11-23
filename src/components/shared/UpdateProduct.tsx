@@ -13,7 +13,7 @@ import ProductForm from "../forms/ItemsForm";
 export default function UpdateProduct({ product }: { product: Product }) {
   return (
     <Dialog>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button className="bg-green-500 hover:bg-green-700">Update</Button>
       </DialogTrigger>
       <DialogContent>

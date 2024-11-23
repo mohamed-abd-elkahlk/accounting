@@ -1,12 +1,16 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FaPhone, FaEnvelope, FaCalendar, FaStore } from "react-icons/fa";
 import { useDeleteClient, useGetClinetById } from "@/api/queries";
 import UpdateClient from "@/components/shared/UpdateClient";
 import AlertDialogButton from "@/components/shared/AlertDialogButton";
 import { formatData } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 export default function ClientDetails() {
   const { clientsId } = useParams(); // Extract clientsId from URL
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const {
     data: client,
@@ -41,6 +45,19 @@ export default function ClientDetails() {
     );
   };
 
+  useEffect(() => {
+    if (isDeletingError) {
+      toast({
+        variant: "destructive",
+        title: `Fiald to delete Client`,
+      });
+    }
+    if (isSuccess) {
+      toast({ variant: "success", title: data });
+      navigate(-1);
+    }
+  }, [isDeletingError, isSuccess, toast, navigate, data]);
+
   return (
     <div className="px-4 md:px-16 py-8 w-full">
       {/* Header Section */}
@@ -61,12 +78,9 @@ export default function ClientDetails() {
         <div className="flex gap-6 ml-auto">
           <UpdateClient client={client} />
           <AlertDialogButton
-            isError={isDeletingError}
             isPending={isDeletingPending}
-            isSuccess={isSuccess}
             onClick={deleteClinet}
             whatToDelete="client"
-            data={data!}
           />
         </div>
       </div>
