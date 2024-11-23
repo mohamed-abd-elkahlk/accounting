@@ -93,16 +93,34 @@ export const itemSchema = z.object({
     .string()
     .min(3, { message: "Item name lenght must be more than 3" })
     .max(400, { message: "Item name lenght must be less than 400" }),
-  amount: z
-    .string()
-    .transform((val) => parseFloat(val))
-    .refine((val) => !isNaN(val) && val <= 100000000, {
+
+  stock: z
+    .union([
+      z.string().transform((val) => parseFloat(val)),
+      z.number(), // Accept numbers directly
+    ])
+    .refine((val) => Number.isInteger(val), {
+      message: "Stock must be an integer",
+    })
+    .refine((val) => val >= 0, {
+      message: "Stock cannot be negative",
+    })
+    .refine((val) => val <= 100000000, {
       message: "Item in stock must be less than 100000000",
     }),
+
   price: z
-    .string()
-    .transform((val) => parseFloat(val))
-    .refine((val) => !isNaN(val) && val <= 100000000, {
+    .union([
+      z.string().transform((val) => parseFloat(val)),
+      z.number(), // Accept numbers directly
+    ])
+    .refine((val) => !isNaN(val), {
+      message: "Price must be a valid number",
+    })
+    .refine((val) => val >= 0, {
+      message: "Price cannot be negative",
+    })
+    .refine((val) => val <= 100000000, {
       message: "Item price must be less than 100000000",
     }),
 });

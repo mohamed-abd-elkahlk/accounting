@@ -48,9 +48,8 @@ export async function updateCLientById(
   try {
     const updated = await invoke<Client>("update_client", {
       clientId, // Pass the client ID
-      client: updatedClient, // Pass the updated client data
+      updatedFields: updatedClient, // Pass the updated client data
     });
-
     return updated;
   } catch (error) {
     console.log(error);
@@ -76,7 +75,9 @@ export async function deleteClientById(clientId: string): Promise<string> {
 
 export async function createProudct(product: NewProduct): Promise<Product> {
   try {
-    const data = invoke<Product>("create_product", product);
+    const data = await invoke<Product>("create_product", {
+      newProduct: product,
+    });
     return data;
   } catch (error) {
     console.log(error);
@@ -116,10 +117,13 @@ export async function getProductById(productId: string) {
 }
 export async function updateProductById(
   productId: string,
-  product: Product
+  product: NewProduct
 ): Promise<Product> {
   try {
-    let data = await invoke<Product>("update_product", { product, productId });
+    let data = await invoke<Product>("update_product", {
+      updatedFields: product,
+      productId,
+    });
     return data;
   } catch (error) {
     console.log(error);

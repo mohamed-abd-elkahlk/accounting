@@ -16,18 +16,19 @@ export type Client = {
   totalPaid?: number | null;
   outstandingBalance?: number | null;
   // dates
-  created_at: string;
-  updated_at: string;
+  created_at: { $date: { $numberLong: string } };
+  updated_at: { $date: { $numberLong: string } };
 };
 export type Product = {
   _id: { $oid: string };
   name: string;
   discription?: string | null;
   tags: string[];
-  price: string;
-  stock: string;
-  created_at: string;
-  updated_at: string;
+  price: number;
+  stock: number;
+  // dates
+  created_at: { $date: { $numberLong: string } };
+  updated_at: { $date: { $numberLong: string } };
 };
 
 export type NewClient = z.infer<typeof NewClientSchema>;

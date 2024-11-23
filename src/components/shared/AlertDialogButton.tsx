@@ -10,23 +10,29 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "../ui/button";
-import { useDeleteClient } from "@/api/queries";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
-export default function AlertDialogButton({ clientId }: { clientId: string }) {
-  const {
-    mutate: deleteClinet,
-    isError,
-    isPending,
-    isSuccess,
-    data,
-  } = useDeleteClient(clientId);
+export default function AlertDialogButton({
+  onClick,
+  whatToDelete,
+  isError,
+  isSuccess,
+  isPending,
+  data,
+}: {
+  onClick: () => void;
+  whatToDelete: string;
+  isError: boolean;
+  isSuccess: boolean;
+  isPending: boolean;
+  data: string;
+}) {
   const navigate = useNavigate();
 
   const { toast } = useToast();
   if (isError) {
-    toast({ variant: "destructive", title: "Fiald to delete clinet" });
+    toast({ variant: "destructive", title: `Fiald to delete ${whatToDelete}` });
   }
   if (isSuccess) {
     toast({ variant: "success", title: data });
@@ -41,16 +47,13 @@ export default function AlertDialogButton({ clientId }: { clientId: string }) {
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete client
-            and remove his data from our servers.
+            This action cannot be undone. This will permanently delete{" "}
+            {whatToDelete} and remove his data from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => deleteClinet()}
-            disabled={isPending}
-          >
+          <AlertDialogAction onClick={onClick} disabled={isPending}>
             {isPending ? "Deleteing..." : "Delete"}
           </AlertDialogAction>
         </AlertDialogFooter>

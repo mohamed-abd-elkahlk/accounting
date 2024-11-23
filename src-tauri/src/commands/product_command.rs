@@ -27,7 +27,6 @@ pub async fn create_product(
         discription: new_product.discription,
         price: new_product.price,
         stock: new_product.stock,
-        tags: new_product.tags,
         created_at: MongoDateTime::now(),
         updated_at: MongoDateTime::now(),
     };

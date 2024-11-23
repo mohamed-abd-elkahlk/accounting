@@ -7,9 +7,9 @@ import {
 } from "@/components/ui/dialog";
 import { FaPlus } from "react-icons/fa";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import ItemsForm from "../forms/ItemsForm";
+import ProductForm from "../forms/ItemsForm";
 
-export default function NewStore() {
+export default function NewProduct() {
   return (
     <Dialog>
       <DialogTrigger>
@@ -25,7 +25,7 @@ export default function NewStore() {
           <DialogTitle>New Item</DialogTitle>
         </DialogHeader>
         <ScrollArea className="h-96 w-full rounded-md border">
-          <ItemsForm action="create" />
+          <ProductForm action="create" />
         </ScrollArea>
       </DialogContent>
     </Dialog>

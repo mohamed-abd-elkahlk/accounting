@@ -12,6 +12,7 @@ import InvoiceDetails from "./routes/InvoiceDetails";
 import Sotre from "./routes/Sotre";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App";
+import ProductId from "./components/shared/ProductId";
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
       {
         path: "stores",
         element: <Sotre />,
+      },
+      {
+        path: "/stores/:productId",
+        element: <ProductId />,
       },
     ],
   },

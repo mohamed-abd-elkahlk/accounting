@@ -15,22 +15,78 @@ import { Input } from "@/components/ui/input";
 import { DialogFooter } from "../ui/dialog";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { Button } from "../ui/button";
+import { useCraeteNewProduct, useUpdateProductByID } from "@/api/queries";
+import { useToast } from "@/hooks/use-toast";
+import { useRef } from "react";
+import DialogCloseButton from "../shared/DialogCloseButton";
+import { Product } from "@/types";
 // import DialogCloseButton from "../shared/DialogCloseButton";
-export default function ItemForm({ action }: { action: string }) {
+export default function ProductForm({
+  action,
+  data,
+}: {
+  action: string;
+  data?: Product;
+}) {
+  const { toast } = useToast();
+  const dialogRef = useRef<HTMLButtonElement | null>(null);
+
+  const {
+    mutateAsync: createProduct,
+    // isPending,
+    // error,
+  } = useCraeteNewProduct();
+
+  const { mutateAsync: updateProduct, isPending: isUpdate } =
+    useUpdateProductByID(data?._id.$oid!);
   const form = useForm<z.infer<typeof itemSchema>>({
     resolver: zodResolver(itemSchema),
     defaultValues: {
-      name: "",
-      amount: 0,
-      price: 0,
+      name: data?.name || "",
+      stock: data?.stock || 0,
+      price: data?.price || 0,
     },
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof itemSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof itemSchema>) {
+    if (action === "update") {
+      try {
+        await updateProduct(values);
+        if (dialogRef.current) {
+          dialogRef.current.click();
+        }
+        form.reset();
+        return toast({
+          title: "Product updated successfully",
+          variant: "success",
+        });
+      } catch (error) {
+        console.log(error);
+        toast({
+          title: "Faild to update Product",
+          variant: "destructive",
+        });
+      }
+    } else {
+      try {
+        await createProduct(values);
+        if (dialogRef.current) {
+          dialogRef.current.click();
+        }
+        form.reset();
+        return toast({
+          title: "Product added successfully",
+          variant: "success",
+        });
+      } catch (error) {
+        console.log(error);
+        toast({
+          title: "Faild to add new Product",
+          variant: "destructive",
+        });
+      }
+    }
   }
   return (
     <Form {...form}>
@@ -55,7 +111,7 @@ export default function ItemForm({ action }: { action: string }) {
             <FormItem>
               <FormLabel>Item Price</FormLabel>
               <FormControl>
-                <Input placeholder="Price" type="number" {...field} />
+                <Input placeholder="Price" type="number" min={0} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -63,33 +119,18 @@ export default function ItemForm({ action }: { action: string }) {
         />
         <FormField
           control={form.control}
-          name="amount"
+          name="stock"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Item quantity</FormLabel>
               <FormControl>
-                <Input placeholder="Price" type="number" {...field} />
+                <Input placeholder="Stock" type="number" min={0} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div className="flex justify-end gap-3">
-          <DialogFooter>
-            <Button type="submit">
-              {false
-                ? "Loading..."
-                : action === "create"
-                ? "Confirm"
-                : "Update"}
-            </Button>
-          </DialogFooter>
-          <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              Close
-            </Button>
-          </DialogClose>
-        </div>
+        <DialogCloseButton action="create" pending={false} ref={dialogRef} />
       </form>
     </Form>
   );

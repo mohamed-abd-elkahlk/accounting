@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
 import { FaPhone, FaEnvelope, FaCalendar, FaStore } from "react-icons/fa";
-import { useGetClinetById } from "@/api/queries";
-import { Button } from "@/components/ui/button";
+import { useDeleteClient, useGetClinetById } from "@/api/queries";
 import UpdateClient from "@/components/shared/UpdateClient";
 import AlertDialogButton from "@/components/shared/AlertDialogButton";
+import { formatData } from "@/lib/utils";
 
 export default function ClientDetails() {
   const { clientsId } = useParams(); // Extract clientsId from URL
@@ -15,7 +15,13 @@ export default function ClientDetails() {
     isPending,
   } = useGetClinetById(clientsId!);
   console.log(client?.username);
-
+  const {
+    mutate: deleteClinet,
+    isError: isDeletingError,
+    isPending: isDeletingPending,
+    isSuccess,
+    data,
+  } = useDeleteClient(clientsId!);
   if (isError) return <div>{error.message}</div>;
   if (isPending) return <div>Loding...</div>;
 
@@ -54,7 +60,14 @@ export default function ClientDetails() {
         </div>
         <div className="flex gap-6 ml-auto">
           <UpdateClient client={client} />
-          <AlertDialogButton clientId={client._id.$oid} />
+          <AlertDialogButton
+            isError={isDeletingError}
+            isPending={isDeletingPending}
+            isSuccess={isSuccess}
+            onClick={deleteClinet}
+            whatToDelete="client"
+            data={data!}
+          />
         </div>
       </div>
 
@@ -110,11 +123,7 @@ export default function ClientDetails() {
           <p>
             <FaCalendar className="inline mr-2 text-green-500" />{" "}
             <strong>Registered on:</strong>
-            {new Intl.DateTimeFormat("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            }).format(new Date(client.created_at))}
+            {formatData(client.created_at.$date.$numberLong)}
           </p>
           <p>
             <strong>City:</strong> {client.city}

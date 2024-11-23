@@ -93,11 +93,11 @@ export const useGetProductByID = (productId: string) => {
 export const useUpdateProductByID = (productId: string) => {
   let queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (product: Product) => updateProductById(productId, product),
+    mutationFn: (product: NewProduct) => updateProductById(productId, product),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_PRODUCT] });
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_ClINET_BY_ID, productId],
+        queryKey: [QUERY_KEYS.GET_PRODUCT_BY_ID, productId],
       });
     },
   });

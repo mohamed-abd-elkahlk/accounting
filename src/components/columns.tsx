@@ -13,16 +13,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Product } from "@/types";
+import { useNavigate } from "react-router-dom";
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
-export type Item = {
-  id: string;
-  amount: number;
-  price: number;
-  name: string;
-};
 
-export const columns: ColumnDef<Item>[] = [
+export const productColumns: ColumnDef<Product>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -60,27 +56,31 @@ export const columns: ColumnDef<Item>[] = [
     },
   },
   {
-    accessorKey: "amount",
+    accessorKey: "stock",
     header: () => <div className="text-right">Amount</div>,
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"));
+      const amount = parseFloat(row.getValue("stock"));
+      return <div className="text-right font-medium">{amount}</div>;
+    },
+  },
+  {
+    accessorKey: "price",
+    header: () => <div className="text-right">Prise</div>,
+    cell: ({ row }) => {
+      const price = parseFloat(row.getValue("price"));
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
-      }).format(amount);
+      }).format(price);
 
       return <div className="text-right font-medium">{formatted}</div>;
     },
   },
   {
-    accessorKey: "price",
-    header: "Price",
-  },
-  {
     id: "actions",
     cell: ({ row }) => {
       const payment = row.original;
-
+      let navigate = useNavigate();
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -92,13 +92,14 @@ export const columns: ColumnDef<Item>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
+              onClick={() => navigator.clipboard.writeText(payment._id.$oid)}
             >
               Copy payment ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate(`${payment._id.$oid}`)}>
+              View Product
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

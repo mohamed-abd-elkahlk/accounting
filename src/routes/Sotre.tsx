@@ -1,28 +1,12 @@
-import { columns, Item } from "@/components/columns";
+import { useGetProducts } from "@/api/queries";
+import { productColumns } from "@/components/columns";
 import { DataTable } from "@/components/data-table";
-import NewStore from "@/components/shared/NewStore";
-const data: Item[] = [
-  {
-    id: "728ed52f",
-    amount: 100,
-    price: 3000,
-    name: "tablet",
-  },
-  {
-    id: "728ed52f",
-    amount: 100,
-    price: 3000,
-    name: "Iphone",
-  },
-  {
-    id: "728ed52f",
-    amount: 100,
-    price: 3000,
-    name: "mobile",
-  },
-  // ...
-];
+import NewProduct from "@/components/shared/NewProduct";
 export default function Sotre() {
+  const { data: product, error, isPending } = useGetProducts();
+  if (error) return <div> Error:{error.message}</div>;
+  if (isPending) return <div> loading...</div>;
+
   return (
     <div className="px-4 md:px-16 py-8 w-full">
       {/* Header Section */}
@@ -30,11 +14,11 @@ export default function Sotre() {
         <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">
           Sotre
         </h1>
-        <NewStore />
+        <NewProduct />
       </div>
       <hr className="mt-2 mb-6 border-gray-300" />
       <div className="container mx-auto py-10">
-        <DataTable columns={columns} data={data} />
+        <DataTable columns={productColumns} data={product} />
       </div>
     </div>
   );

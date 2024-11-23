@@ -6,7 +6,6 @@ pub struct Product {
     pub id: Option<ObjectId>,
     pub name: String,
     pub discription: Option<String>,
-    pub tags: Vec<String>,
     pub price: f64,
     pub stock: u32,
     // Date fields
@@ -20,7 +19,6 @@ pub struct NewProduct {
     pub id: Option<ObjectId>,
     pub name: String,
     pub discription: Option<String>,
-    pub tags: Vec<String>,
     pub price: f64,
     pub stock: u32,
 }
