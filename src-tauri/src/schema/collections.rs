@@ -1,6 +1,7 @@
 pub enum Collection {
     Client,
     Product,
+    Invoice,
 }
 
 impl Collection {
@@ -9,6 +10,7 @@ impl Collection {
         match self {
             Collection::Client => "clients",
             Collection::Product => "products",
+            Collection::Invoice => "invoices",
         }
     }
 }

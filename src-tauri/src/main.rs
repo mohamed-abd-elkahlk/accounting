@@ -4,7 +4,7 @@
 mod commands;
 mod db;
 mod schema;
-
+mod utils;
 use commands::{
     client_command::{
         add_new_client, delete_client, find_client_by_id, list_all_clients, update_client,

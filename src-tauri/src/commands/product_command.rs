@@ -1,7 +1,5 @@
 use futures::TryStreamExt;
-use mongodb::bson::{
-    self, datetime::DateTime as MongoDateTime, doc, oid::ObjectId, Bson, Document,
-};
+use mongodb::bson::{self, datetime::DateTime as MongoDateTime, doc, Bson, Document};
 use tauri::State;
 use tokio::sync::Mutex;
 
@@ -12,6 +10,7 @@ use crate::{
         error::{AppResult, ErrorResponse},
         product_schema::{NewProduct, Product},
     },
+    utils::parse_object_id,
 };
 
 #[tauri::command]
@@ -55,8 +54,7 @@ pub async fn delete_product(
 
     let collection = db.get_collection::<Product>(Collection::Product);
 
-    let id = ObjectId::parse_str(product_id.clone())
-        .map_err(|e| ErrorResponse::new(400, "invalid id ", Some(e.to_string())))?;
+    let id = parse_object_id(&product_id, "Product")?;
 
     let result = collection
         .delete_one(doc! {"_id":id})
@@ -99,8 +97,7 @@ pub async fn get_product_by_id(
     let collection = db.get_collection::<Product>(Collection::Product);
 
     // Convert product_id to ObjectId
-    let object_id = ObjectId::parse_str(&product_id)
-        .map_err(|e| ErrorResponse::new(400, "Invalid product ID format", Some(e.to_string())))?;
+    let object_id = parse_object_id(&product_id, "Product")?;
 
     // Find the product by ID
     let result = collection
@@ -129,9 +126,7 @@ pub async fn update_product(
     let collection = db.get_collection::<Product>(Collection::Product);
 
     // Convert `product_id` to ObjectId
-    let object_id = mongodb::bson::oid::ObjectId::parse_str(&product_id)
-        .map_err(|e| ErrorResponse::new(400, "Invalid product ID format", Some(e.to_string())))?;
-
+    let object_id = parse_object_id(&product_id, "Product")?;
     // Add `updated_at` to the update document
     let mut updated_fields = updated_fields.clone();
     updated_fields.insert("updated_at", MongoDateTime::now());

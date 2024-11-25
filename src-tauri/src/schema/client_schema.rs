@@ -33,4 +33,7 @@ pub struct NewClient {
     pub company_name: String,
     pub city: String,
     pub address: String,
+    // Date fields
+    pub created_at: DateTime, // When the client record was created
+    pub updated_at: DateTime, // When the client record was last updated
 }

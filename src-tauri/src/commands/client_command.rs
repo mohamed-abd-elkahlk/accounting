@@ -5,12 +5,11 @@ use crate::{
         collections::Collection,
         error::{AppResult, ErrorResponse},
     },
+    utils::parse_object_id,
 };
 
 use futures::TryStreamExt;
-use mongodb::bson::{
-    self, doc, oid::ObjectId, to_document, Bson, DateTime as MongoDateTime, Document,
-};
+use mongodb::bson::{self, doc, to_document, Bson, DateTime as MongoDateTime, Document};
 use tauri::State;
 use tokio::sync::Mutex;
 
@@ -92,8 +91,7 @@ pub async fn update_client(
 ) -> AppResult<Client> {
     let db = db.lock().await;
     let collection = db.get_collection::<Document>(Collection::Client);
-    let id: ObjectId = ObjectId::parse_str(client_id)
-        .map_err(|e| ErrorResponse::new(500, "faild to parse user Id", Some(e.to_string())))?;
+    let id = parse_object_id(&client_id, "Client")?;
 
     // Add `updated_at` to the update document
     let mut updated_fields = updated_fields.clone();
@@ -143,8 +141,7 @@ pub async fn find_client_by_id(
     let collection = db.get_collection::<Document>(Collection::Client);
 
     // Search for the client by ID
-    let id = ObjectId::parse_str(client_id)
-        .map_err(|e| ErrorResponse::new(500, "faild to parse user Id", Some(e.to_string())))?;
+    let id = parse_object_id(&client_id, "Client")?;
     let filter = doc! { "_id": id};
     let client_doc = collection
         .find_one(filter)
@@ -173,8 +170,7 @@ pub async fn delete_client(
     // Lock the database to safely access it
     let db = db.lock().await;
     let collection = db.get_collection::<Document>(Collection::Client);
-    let id: ObjectId = ObjectId::parse_str(client_id.clone())
-        .map_err(|e| ErrorResponse::new(500, "faild to parse user Id", Some(e.to_string())))?;
+    let id = parse_object_id(&client_id, "Client")?;
     // Perform the delete operation
     let result = collection
         .delete_one(
