@@ -1,5 +1,12 @@
 import { QueryError } from "@/components/shared/ErrorResponsePage";
-import { Client, NewClient, NewProduct, Product } from "@/types";
+import {
+  Client,
+  Invoice,
+  NewClient,
+  NewInvoice,
+  NewProduct,
+  Product,
+} from "@/types";
 // const baseUrl = import.meta.env.VITE_API_URL;
 import { invoke } from "@tauri-apps/api/core";
 
@@ -166,6 +173,85 @@ export async function updateProductById(
     // Handle error and re-throw as QueryError
     const errorMessage = error.message || "An unknown error occurred";
     const errorCode = error.code || 500; // Default to 500 if code is not provided
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
+  }
+}
+
+export async function createInvoice(newInvoice: NewInvoice): Promise<Invoice> {
+  try {
+    const data = await invoke<Invoice>("create_invoice", {
+      newInvoice,
+    });
+    return data;
+  } catch (error: any) {
+    console.log(error);
+
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500;
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
+  }
+}
+
+export async function deleteInvoice(invoiceId: string): Promise<string> {
+  try {
+    const data = await invoke<string>("delete_invoice", {
+      invoiceId,
+    });
+    return data;
+  } catch (error: any) {
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500;
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
+  }
+}
+
+export async function getAllInvoices(): Promise<Invoice[]> {
+  try {
+    const data = await invoke<Invoice[]>("get_all_invoices");
+    return data;
+  } catch (error: any) {
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500;
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
+  }
+}
+
+export async function getInvoiceById(invoiceId: string): Promise<Invoice> {
+  try {
+    const data = await invoke<Invoice>("get_invoice_by_id", {
+      invoiceId,
+    });
+    return data;
+  } catch (error: any) {
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500;
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
+  }
+}
+
+export async function updateInvoiceById(
+  invoiceId: string,
+  updatedFields: Partial<Invoice>
+): Promise<Invoice> {
+  try {
+    const data = await invoke<Invoice>("update_invoice", {
+      invoiceId,
+      updatedFields,
+    });
+    return data;
+  } catch (error: any) {
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500;
     const errorDetails = error.details || null;
 
     throw new QueryError(errorMessage, errorCode, errorDetails);

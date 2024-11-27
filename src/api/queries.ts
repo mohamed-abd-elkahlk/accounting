@@ -1,4 +1,4 @@
-import { NewClient, NewProduct } from "@/types";
+import { Invoice, NewClient, NewInvoice, NewProduct } from "@/types";
 import {
   useQuery,
   useMutation,
@@ -6,15 +6,20 @@ import {
   useInfiniteQuery,
 } from "@tanstack/react-query";
 import {
+  createInvoice,
   createNewClient,
   createProudct,
   deleteClientById,
+  deleteInvoice,
   deleteProduct,
   getAllClients,
+  getAllInvoices,
   getAllProducts,
   getCLientById,
+  getInvoiceById,
   getProductById,
   updateCLientById,
+  updateInvoiceById,
   updateProductById,
 } from ".";
 import { QUERY_KEYS } from "./qurieskeys";
@@ -119,6 +124,65 @@ export const useDeleteProduct = (productId: string) => {
     mutationFn: () => deleteProduct(productId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_PRODUCT] });
+    },
+  });
+};
+
+// Fetch all invoices
+export const useGetInvoices = () => {
+  return useQuery({
+    queryFn: getAllInvoices,
+    queryKey: [QUERY_KEYS.GET_ALL_INVOICES],
+  });
+};
+
+// Fetch a single invoice by ID
+export const useGetInvoiceByID = (invoiceId: string) => {
+  return useQuery({
+    queryFn: () => getInvoiceById(invoiceId),
+    queryKey: [QUERY_KEYS.GET_INVOICE_BY_ID, invoiceId],
+  });
+};
+
+// Update an invoice by ID
+export const useUpdateInvoiceByID = (invoiceId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (updatedFields: Partial<Invoice>) =>
+      updateInvoiceById(invoiceId, updatedFields),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_ALL_INVOICES],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_INVOICE_BY_ID, invoiceId],
+      });
+    },
+  });
+};
+
+// Create a new invoice
+export const useCreateNewInvoice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (newInvoice: NewInvoice) => createInvoice(newInvoice),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_ALL_INVOICES],
+      });
+    },
+  });
+};
+
+// Delete an invoice by ID
+export const useDeleteInvoice = (invoiceId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => deleteInvoice(invoiceId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_ALL_INVOICES],
+      });
     },
   });
 };

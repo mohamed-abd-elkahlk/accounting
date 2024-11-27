@@ -9,6 +9,9 @@ use commands::{
     client_command::{
         add_new_client, delete_client, find_client_by_id, list_all_clients, update_client,
     },
+    invoice_command::{
+        create_invoice, delete_invoice, get_all_invoices, get_invoice_by_id, update_invoice,
+    },
     product_command::{
         create_product, delete_product, get_all_products, get_product_by_id, update_product,
     },
@@ -50,6 +53,11 @@ fn main() {
                     get_all_products,
                     get_product_by_id,
                     update_product,
+                    create_invoice,
+                    delete_invoice,
+                    get_all_invoices,
+                    get_invoice_by_id,
+                    update_invoice
                 ])
                 .run(tauri::generate_context!())
                 .expect("Error while running Tauri application");

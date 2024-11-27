@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Product } from "@/types";
+import { Client, Invoice, Product } from "@/types";
 import { useNavigate } from "react-router-dom";
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -103,6 +103,60 @@ export const productColumns: ColumnDef<Product>[] = [
           </DropdownMenuContent>
         </DropdownMenu>
       );
+    },
+  },
+];
+export const invoiceColumns: ColumnDef<Invoice>[] = [
+  {
+    accessorKey: "_id",
+    header: () => <div>ID</div>,
+    cell: ({ row }) => (
+      <span>{row.original._id.$oid}</span> // Render the ObjectId string
+    ),
+  },
+  {
+    accessorKey: "client",
+    header: () => <div>Client</div>,
+    cell: ({ row }) => (
+      <div>
+        <p className="font-semibold">{row.original.client.username}</p>
+        <p className="text-sm text-muted-foreground">
+          {row.original.client.email}
+        </p>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "goods",
+    header: () => <div>Goods</div>,
+    cell: ({ row }) => (
+      <ul className="list-disc pl-5">
+        {row.original.goods.map((product, index) => (
+          <li key={index}>
+            {product._id.$oid} (x{product.stock})
+          </li>
+        ))}
+      </ul>
+    ),
+  },
+  {
+    accessorKey: "created_at",
+    header: () => <div>Created At</div>,
+    cell: ({ row }) => {
+      const date = new Date(
+        parseInt(row.original.created_at.$date.$numberLong, 10)
+      );
+      return <span>{date.toLocaleDateString()}</span>;
+    },
+  },
+  {
+    accessorKey: "updated_at",
+    header: () => <div>Updated At</div>,
+    cell: ({ row }) => {
+      const date = new Date(
+        parseInt(row.original.updated_at.$date.$numberLong, 10)
+      );
+      return <span>{date.toLocaleDateString()}</span>;
     },
   },
 ];

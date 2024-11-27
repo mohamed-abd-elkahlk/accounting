@@ -1,11 +1,15 @@
-use mongodb::{options::ClientOptions, Client, Collection as MongoCollection, Database};
+use mongodb::{
+    options::ClientOptions, Client, ClientSession, Collection as MongoCollection, Database,
+};
 use std::env;
 
 use crate::schema::{collections::Collection, error::ErrorResponse};
 
 pub struct MongoDbState {
     pub database: Database,
+    pub client: Client,
 }
+
 pub async fn init_db() -> Result<MongoDbState, ErrorResponse> {
     // Retrieve the MongoDB connection string from environment variables
     let mongodb_uri = env::var("DATABASE_STRING").map_err(|e| {
@@ -38,12 +42,23 @@ pub async fn init_db() -> Result<MongoDbState, ErrorResponse> {
     let database = client.database("accounting");
 
     // Return the initialized MongoDbState
-    Ok(MongoDbState { database })
+    Ok(MongoDbState { database, client })
 }
 
 impl MongoDbState {
     /// Dynamically fetch a MongoDB collection
     pub fn get_collection<T: Send + Sync>(&self, collection: Collection) -> MongoCollection<T> {
         self.database.collection(collection.as_str())
+    }
+
+    /// Start a new session
+    pub async fn start_session(&self) -> Result<ClientSession, ErrorResponse> {
+        self.client.start_session().await.map_err(|e| {
+            ErrorResponse::new(
+                500,
+                "Failed to start a MongoDB session.",
+                Some(e.to_string()),
+            )
+        })
     }
 }

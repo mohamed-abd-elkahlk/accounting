@@ -31,63 +31,17 @@ export const clientSchema = z.object({
 });
 
 export const invoiceSchema = z.object({
-  username: z
-    .string()
-    .min(2, { message: "Name must be at least 2 characters" })
-    .max(50, { message: "Name must be at most 50 characters" }),
-
-  email: z.string().email({ message: "Invalid email address" }).optional(),
-
-  phone: z.string().refine((phone) => /^(?:\+20)?01\d{9}$/.test(phone), {
-    message: "Invalid Egyptian phone number",
-  }),
-
-  companyName: z
-    .string()
-    .min(2, { message: "Company Name must be at least 2 characters" })
-    .max(50, { message: "Company Name must be at most 50 characters" }),
-
-  city: z
-    .string()
-    .min(2, { message: "City name must be at least 2 characters" })
-    .max(50, { message: "City name must be at most 50 characters" }),
-
-  address: z
-    .string()
-    .min(5, { message: "Address must be at least 5 characters" })
-    .max(200, { message: "Address must be at most 200 characters" }),
-
-  goods: z
-    .array(
-      z.object({
-        itemName: z
-          .string()
-          .min(1, { message: "Item name must be provided" })
-          .max(100, { message: "Item name must be at most 100 characters" }),
-
-        quantity: z
-          .number()
-          .min(1, { message: "Quantity must be at least 1" })
-          .max(1000, { message: "Quantity must be realistic (1-1000)" }),
-
-        price: z
-          .number()
-          .min(0, { message: "Price cannot be negative" })
-          .max(1_000_000, {
-            message: "Price must be realistic (up to 1,000,000)",
-          }),
-      })
-    )
-    .min(1, { message: "At least one item must be listed in the goods" }),
-
-  totalAmountDue: z
-    .number()
-    .min(0, { message: "Total amount due cannot be negative" })
-    .max(1_000_000, {
-      message: "Total amount due must be realistic (up to 1,000,000)",
-    }),
+  clientId: z.string({ message: "Client required" }).min(1, "Client required"),
+  goods: z.array(
+    z.object({
+      productId: z.string().min(1, { message: "Product is required" }),
+      quantity: z.preprocess(
+        (val) => (typeof val === "string" ? parseFloat(val) : val),
+        z.number().min(1, "Quantity must be at least 1")
+      ),
+    })
+  ),
 });
-
 export const productSchema = z.object({
   name: z
     .string()

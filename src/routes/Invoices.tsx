@@ -1,3 +1,6 @@
+import { useGetInvoices } from "@/api/queries";
+import { invoiceColumns } from "@/components/columns";
+import { DataTable } from "@/components/data-table";
 import NewInvoice from "@/components/shared/NewInvoice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -9,7 +12,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FaFileInvoiceDollar,
   FaCheckCircle,
@@ -85,7 +88,18 @@ const invoices = [
 
 export default function Invoices() {
   const [stats] = useState(invoiceStats);
+  const { data: invoices, isPending, error } = useGetInvoices();
+  // useEffect(() => {
 
+  // });
+  console.log(invoices);
+
+  if (isPending) {
+    return <div>loading</div>;
+  }
+  if (error) {
+    return <div>error:{error.message}</div>;
+  }
   return (
     <div className="px-4 md:px-16 py-8 w-full">
       {/* Header Section */}
@@ -123,82 +137,7 @@ export default function Invoices() {
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Invoice List
           </h2>
-          <Table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-lg">
-            <TableCaption>A list of your recent invoices.</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px] text-left text-gray-600 font-semibold">
-                  Invoice
-                </TableHead>
-
-                <TableHead className="text-gray-600 font-semibold">
-                  Username
-                </TableHead>
-                <TableHead className="text-gray-600 font-semibold">
-                  Company
-                </TableHead>
-                <TableHead className="text-gray-600 font-semibold">
-                  Address
-                </TableHead>
-                <TableHead className="text-gray-600 font-semibold">
-                  Status
-                </TableHead>
-                <TableHead className="text-right text-gray-600 font-semibold">
-                  Amount
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoices.map((invoice) => (
-                <TableRow
-                  key={invoice.id}
-                  className="hover:bg-gray-50 border-b border-gray-200"
-                >
-                  <TableCell className="font-medium text-gray-700">
-                    <Link to={`/invoices/${invoice.id}`}>
-                      {invoice.invoiceNumber}
-                    </Link>
-                  </TableCell>
-
-                  <TableCell className="text-gray-700">
-                    <Link to={`/invoices/${invoice.id}`}>
-                      {invoice.username}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-gray-700">
-                    <Link to={`/invoices/${invoice.id}`}>
-                      {invoice.companyName}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-gray-700">
-                    <Link to={`/invoices/${invoice.id}`}>
-                      {invoice.address}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link to={`/invoices/${invoice.id}`}>
-                      <span
-                        className={`py-1 px-3 rounded-full text-xs font-semibold ${
-                          invoice.status === "Paid"
-                            ? "bg-green-100 text-green-600"
-                            : invoice.status === "Pending"
-                            ? "bg-yellow-100 text-yellow-600"
-                            : "bg-red-100 text-red-600"
-                        }`}
-                      >
-                        {invoice.status}
-                      </span>
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-right font-medium text-gray-700">
-                    <Link to={`/invoices/${invoice.id}`}>
-                      ${invoice.amount.toLocaleString()}
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable columns={invoiceColumns} data={invoices} />
         </div>
       </div>
     </div>

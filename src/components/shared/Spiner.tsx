@@ -1,5 +1,5 @@
-import { SyncLoader } from "react-spinners";
+import { ClockLoader } from "react-spinners";
 
 export default function Spiner() {
-  return <SyncLoader color="#133E87" />;
+  return <ClockLoader color="#133E87" />;
 }

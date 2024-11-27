@@ -7,13 +7,9 @@ export enum QUERY_KEYS {
   GET_PRODUCT_BY_ID = "getProdutById",
   GET_ALL_PRODUCT = "getAllPorduct",
 
-  // // POST KEYS
-  // GET_POSTS = "getPosts",
-  // GET_INFINITE_POSTS = "getInfinitePosts",
-  // GET_RECENT_POSTS = "getRecentPosts",
-  // GET_POST_BY_ID = "getPostById",
-  // GET_USER_POSTS = "getUserPosts",
-  // GET_FILE_PREVIEW = "getFilePreview",
+  // INVOICE KEYS
+  GET_ALL_INVOICES = "getInvoices",
+  GET_INVOICE_BY_ID = "getInviceById",
 
   // //  SEARCH KEYS
   // SEARCH_POSTS = "getSearchPosts",

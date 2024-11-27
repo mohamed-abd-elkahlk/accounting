@@ -1,10 +1,10 @@
 import { useParams } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import InvoicePrint from "@/components/shared/InvoicePrint";
 
 const mockInvoices = [
   {
-    id: 1,
+    id: "1",
     invoiceNumber: "INV001",
     date: "2024-01-15",
     dueDate: "2024-02-15",
@@ -51,7 +51,7 @@ const mockInvoices = [
     method: "Credit Card",
   },
   {
-    id: 2,
+    id: "2",
     invoiceNumber: "INV002",
     date: "2024-01-25",
     dueDate: "2024-02-25",
@@ -73,7 +73,7 @@ const mockInvoices = [
     method: "Bank Transfer",
   },
   {
-    id: 3,
+    id: "3",
     invoiceNumber: "INV003",
     date: "2024-02-01",
     dueDate: "2024-03-01",
@@ -99,16 +99,18 @@ const mockInvoices = [
 export default function InvoiceDetails() {
   const { invoicesid } = useParams();
   const foundInvoice = mockInvoices.find(
-    (invoice) => invoice.id === parseInt(invoicesid!)
+    (invoice) => invoice.id === invoicesid
   );
 
-  const [invoice, setInvoice] = useState(foundInvoice);
+  const [invoice, setInvoice] = useState(mockInvoices);
   const printRef = useRef(null);
 
   if (!invoice) {
     return <p className="text-center text-red-500">Invoice not found</p>;
   }
-
+  useEffect(() => {
+    setInvoice(foundInvoice!);
+  });
   return (
     <div className="mt-6 flex flex-col items-center w-full">
       <div

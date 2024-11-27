@@ -1,5 +1,13 @@
-import React from "react";
+import "@tanstack/react-query";
 
+// Extend `@tanstack/react-query` to define a default error type
+declare module "@tanstack/react-query" {
+  interface Register {
+    defaultError: QueryError; // Use your custom error type here
+  }
+}
+
+// Define a custom error class
 export class QueryError extends Error {
   code: number; // HTTP-like status code
   details?: string; // Optional additional details
@@ -12,20 +20,15 @@ export class QueryError extends Error {
   }
 }
 
+// Error response component
 interface ErrorResponseProps {
   error: QueryError;
 }
 
-import "@tanstack/react-query";
-
-declare module "@tanstack/react-query" {
-  interface Register {
-    defaultError: QueryError; // Replace MyCustomError with your actual error type
-  }
-}
 const ErrorResponsePage: React.FC<ErrorResponseProps> = ({ error }) => {
   const { code, message, details } = error;
 
+  // Generate status badge
   const getStatusBadge = (code: number) => {
     let badgeColor = "bg-gray-200 text-gray-800";
     if (code >= 200 && code < 300) badgeColor = "bg-green-100 text-green-800";

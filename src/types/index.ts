@@ -1,4 +1,4 @@
-import { productSchema, clientSchema } from "@/lib/validation";
+import { productSchema, clientSchema, invoiceSchema } from "@/lib/validation";
 import { z } from "zod";
 
 export type Client = {
@@ -30,6 +30,16 @@ export type Product = {
   created_at: { $date: { $numberLong: string } };
   updated_at: { $date: { $numberLong: string } };
 };
+
+export type Invoice = {
+  _id: { $oid: string };
+  client: Client;
+  goods: Product[];
+  // dates
+  created_at: { $date: { $numberLong: string } };
+  updated_at: { $date: { $numberLong: string } };
+};
+export type NewInvoice = z.infer<typeof invoiceSchema>;
 
 export type NewClient = z.infer<typeof clientSchema>;
 
