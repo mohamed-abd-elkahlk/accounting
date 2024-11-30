@@ -74,6 +74,7 @@ export const useGetClinetById = (clientId: string) => {
   return useQuery({
     queryFn: () => getCLientById(clientId),
     queryKey: [QUERY_KEYS.GET_ClINET_BY_ID, clientId],
+    enabled: !!clientId,
   });
 };
 
@@ -148,7 +149,7 @@ export const useGetInvoiceByID = (invoiceId: string) => {
 export const useUpdateInvoiceByID = (invoiceId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (updatedFields: Partial<Invoice>) =>
+    mutationFn: (updatedFields: Partial<NewInvoice>) =>
       updateInvoiceById(invoiceId, updatedFields),
     onSuccess: () => {
       queryClient.invalidateQueries({

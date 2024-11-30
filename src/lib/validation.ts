@@ -30,16 +30,25 @@ export const clientSchema = z.object({
     .max(200, "Address must be at most 200 characters"),
 });
 
+export const goodsSchema = z.object({
+  name: z.string().min(1, { message: "Name is required" }), // Matches `name: String`
+  price: z.preprocess(
+    (val) => (typeof val === "string" ? parseFloat(val) : val),
+    z.number().min(0, { message: "Price must be at least 0" }) // Matches `price: u32`
+  ),
+  quantity: z.preprocess(
+    (val) => (typeof val === "string" ? parseInt(val, 10) : val),
+    z.number().min(1, { message: "Quantity must be at least 1" }) // Matches `quantity: u32`
+  ),
+  productId: z.string().min(1, { message: "Product ID is required" }), // Matches `product_id: ObjectId`
+});
+
 export const invoiceSchema = z.object({
-  clientId: z.string({ message: "Client required" }).min(1, "Client required"),
-  goods: z.array(
-    z.object({
-      productId: z.string().min(1, { message: "Product is required" }),
-      quantity: z.preprocess(
-        (val) => (typeof val === "string" ? parseFloat(val) : val),
-        z.number().min(1, "Quantity must be at least 1")
-      ),
-    })
+  clientId: z.string().min(1, { message: "Client ID is required" }), // Matches `client_id: ObjectId`
+  goods: z.array(goodsSchema), // Matches `goods: Vec<Goods>`
+  totalPaid: z.preprocess(
+    (val) => (typeof val === "string" ? parseFloat(val) : val),
+    z.number().min(0, { message: "Total paid must be at least 0" }) // Matches `total_paid: f64`
   ),
 });
 export const productSchema = z.object({

@@ -1,7 +1,7 @@
 use mongodb::bson::{oid::ObjectId, DateTime};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Client {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
@@ -33,7 +33,4 @@ pub struct NewClient {
     pub company_name: String,
     pub city: String,
     pub address: String,
-    // Date fields
-    pub created_at: DateTime, // When the client record was created
-    pub updated_at: DateTime, // When the client record was last updated
 }

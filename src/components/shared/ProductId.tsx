@@ -50,7 +50,6 @@ export default function ProductDetails() {
 
   if (isError) return <div>{error.message}</div>;
   if (isPending) return <ProductDetailsSkeleton />;
-  console.log(product);
 
   // Function to determine badge color based on stock level
   const getStockBadge = (stock: number) => {

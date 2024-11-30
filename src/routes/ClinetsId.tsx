@@ -1,12 +1,11 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { FaPhone, FaEnvelope, FaCalendar, FaStore } from "react-icons/fa";
 import { useDeleteClient, useGetClinetById } from "@/api/queries";
 import UpdateClient from "@/components/shared/UpdateClient";
 import AlertDialogButton from "@/components/shared/AlertDialogButton";
-import { formatData } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import ClientDetailsSkeleton from "@/components/skeleton/ClientDetailsSkeleton";
+import ClinetCardInfo from "@/components/shared/ClinetCardInfo";
 export default function ClientDetails() {
   const { clientsId } = useParams(); // Extract clientsId from URL
   const { toast } = useToast();
@@ -127,41 +126,7 @@ export default function ClientDetails() {
         </div>
       </div>
 
-      {/* Basic Info Section */}
-      <section className="bg-white p-6 rounded-lg shadow mb-6">
-        <h2 className="text-xl font-semibold mb-4">Client Information</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <p>
-            <FaStore className="inline mr-2 text-gray-700" />{" "}
-            <strong>Company:</strong> {client.company_name}
-          </p>
-          <p>
-            <FaPhone className="inline mr-2 text-blue-600" />{" "}
-            <strong>Phone:</strong> {client.phone}
-          </p>
-          <p>
-            <FaEnvelope className="inline mr-2 text-red-500" />{" "}
-            <strong>Email:</strong> {client.email || "N/A"}
-          </p>
-          <p>
-            <FaCalendar className="inline mr-2 text-green-500" />{" "}
-            <strong>Registered on:</strong>
-            {formatData(client.created_at.$date.$numberLong)}
-          </p>
-          <p>
-            <strong>City:</strong> {client.city}
-          </p>
-          <p>
-            <strong>Country:</strong> {client.city}
-          </p>
-          <p>
-            <strong>Address:</strong> {client.address}
-          </p>
-          <p>
-            <strong>Status:</strong> active
-          </p>
-        </div>
-      </section>
+      <ClinetCardInfo clientId={client._id.$oid} />
     </div>
   );
 }

@@ -33,11 +33,13 @@ import { useState } from "react";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  context: "product" | "invoice";
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  context,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -67,12 +69,24 @@ export function DataTable<TData, TValue>({
   return (
     <div>
       <div className="flex items-center py-4 justify-between">
-        <h2 className="text-2xl font-bold">Items in the stock</h2>
+        {context === "product" ? (
+          <h2 className="text-2xl font-bold">Items in the stock</h2>
+        ) : (
+          <h2 className="text-2xl font-bold">Invoices</h2>
+        )}
         <Input
-          placeholder="Filter Name..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          placeholder={`Filter By ${
+            context === "invoice" ? "Client Name" : "Name"
+          }`}
+          value={
+            (table
+              .getColumn(context === "invoice" ? "client" : "name")
+              ?.getFilterValue() as string) ?? ""
+          }
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table
+              .getColumn(context === "invoice" ? "client" : "name")
+              ?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />

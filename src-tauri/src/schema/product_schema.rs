@@ -7,7 +7,7 @@ pub struct Product {
     pub name: String,
     pub discription: Option<String>,
     pub price: f64,
-    pub stock: u32,
+    pub stock: i64,
     // Date fields
     pub created_at: DateTime,
     pub updated_at: DateTime,
@@ -20,5 +20,5 @@ pub struct NewProduct {
     pub name: String,
     pub discription: Option<String>,
     pub price: f64,
-    pub stock: u32,
+    pub stock: i64,
 }

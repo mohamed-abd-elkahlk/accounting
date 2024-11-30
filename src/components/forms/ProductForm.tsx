@@ -120,7 +120,13 @@ export default function ProductForm({
             <FormItem>
               <FormLabel>Price</FormLabel>
               <FormControl>
-                <Input placeholder="Price" type="number" min={0} {...field} />
+                <Input
+                  placeholder="Price"
+                  step="0.01"
+                  type="number"
+                  min={0}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -1,4 +1,9 @@
-import { productSchema, clientSchema, invoiceSchema } from "@/lib/validation";
+import {
+  productSchema,
+  clientSchema,
+  invoiceSchema,
+  goodsSchema,
+} from "@/lib/validation";
 import { z } from "zod";
 
 export type Client = {
@@ -30,14 +35,23 @@ export type Product = {
   created_at: { $date: { $numberLong: string } };
   updated_at: { $date: { $numberLong: string } };
 };
+export type Goods = {
+  name: string;
+  price: number;
+  quantity: number;
+  productId: { $oid: string }; // this should match the _id of a Product
+};
 
 export type Invoice = {
   _id: { $oid: string };
-  client: Client;
-  goods: Product[];
+  clientId: { $oid: string };
+  goods: Goods[];
+  totalPrice: number;
+  totalPaid: number;
+  status: "Paid" | "UnPaid" | "PartialPaid";
   // dates
-  created_at: { $date: { $numberLong: string } };
-  updated_at: { $date: { $numberLong: string } };
+  created_at?: { $date: { $numberLong: string } };
+  updated_at?: { $date: { $numberLong: string } };
 };
 export type NewInvoice = z.infer<typeof invoiceSchema>;
 

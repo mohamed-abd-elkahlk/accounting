@@ -44,14 +44,16 @@ export async function getAllClients(): Promise<Array<Client>> {
 }
 
 export async function getCLientById(clientId: string): Promise<Client> {
-  try {
-    console.log(clientId);
+  console.log(clientId);
 
+  try {
     const data = await invoke<Client>("find_client_by_id", {
       clientId, // Must match the Rust parameter name
     });
     return data;
   } catch (error: any) {
+    console.log(error);
+
     // Handle error and re-throw as QueryError
     const errorMessage = error.message || "An unknown error occurred";
     const errorCode = error.code || 500; // Default to 500 if code is not provided
@@ -184,10 +186,10 @@ export async function createInvoice(newInvoice: NewInvoice): Promise<Invoice> {
     const data = await invoke<Invoice>("create_invoice", {
       newInvoice,
     });
+    console.log(data);
+
     return data;
   } catch (error: any) {
-    console.log(error);
-
     const errorMessage = error.message || "An unknown error occurred";
     const errorCode = error.code || 500;
     const errorDetails = error.details || null;
@@ -213,7 +215,7 @@ export async function deleteInvoice(invoiceId: string): Promise<string> {
 
 export async function getAllInvoices(): Promise<Invoice[]> {
   try {
-    const data = await invoke<Invoice[]>("get_all_invoices");
+    const data = await invoke<Invoice[]>("list_all_invoices");
     return data;
   } catch (error: any) {
     const errorMessage = error.message || "An unknown error occurred";
@@ -231,6 +233,8 @@ export async function getInvoiceById(invoiceId: string): Promise<Invoice> {
     });
     return data;
   } catch (error: any) {
+    console.log(error);
+
     const errorMessage = error.message || "An unknown error occurred";
     const errorCode = error.code || 500;
     const errorDetails = error.details || null;
@@ -241,18 +245,21 @@ export async function getInvoiceById(invoiceId: string): Promise<Invoice> {
 
 export async function updateInvoiceById(
   invoiceId: string,
-  updatedFields: Partial<Invoice>
+  updatedFields: Partial<NewInvoice>
 ): Promise<Invoice> {
   try {
-    const data = await invoke<Invoice>("update_invoice", {
+    const data = await invoke<Invoice>("update_invoice_by_id", {
       invoiceId,
-      updatedFields,
+      updatedInvoiceDoc: updatedFields,
     });
+    console.table({ data, updatedFields });
+
     return data;
   } catch (error: any) {
     const errorMessage = error.message || "An unknown error occurred";
     const errorCode = error.code || 500;
     const errorDetails = error.details || null;
+    console.log(error);
 
     throw new QueryError(errorMessage, errorCode, errorDetails);
   }

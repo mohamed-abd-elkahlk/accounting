@@ -20,7 +20,7 @@ export default function Sotre() {
       </div>
       <hr className="mt-2 mb-6 border-gray-300" />
       <div className="container mx-auto py-10">
-        <DataTable columns={productColumns} data={product} />
+        <DataTable columns={productColumns} data={product} context="product" />
       </div>
     </div>
   );

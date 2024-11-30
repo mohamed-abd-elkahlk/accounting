@@ -13,8 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Client, Invoice, Product } from "@/types";
-import { useNavigate } from "react-router-dom";
+import { Invoice, Product } from "@/types";
+import { Link, useNavigate } from "react-router-dom";
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 
@@ -106,57 +106,92 @@ export const productColumns: ColumnDef<Product>[] = [
     },
   },
 ];
+
 export const invoiceColumns: ColumnDef<Invoice>[] = [
   {
     accessorKey: "_id",
     header: () => <div>ID</div>,
-    cell: ({ row }) => (
-      <span>{row.original._id.$oid}</span> // Render the ObjectId string
-    ),
+    cell: ({ row }) => <span>{row.original._id.$oid.slice(4, 11)}...</span>,
   },
-  {
-    accessorKey: "client",
-    header: () => <div>Client</div>,
-    cell: ({ row }) => (
-      <div>
-        <p className="font-semibold">{row.original.client.username}</p>
-        <p className="text-sm text-muted-foreground">
-          {row.original.client.email}
-        </p>
-      </div>
-    ),
-  },
+
   {
     accessorKey: "goods",
     header: () => <div>Goods</div>,
-    cell: ({ row }) => (
-      <ul className="list-disc pl-5">
-        {row.original.goods.map((product, index) => (
-          <li key={index}>
-            {product._id.$oid} (x{product.stock})
-          </li>
-        ))}
-      </ul>
-    ),
+    cell: ({ row }) => <p>Products [x{row.original.goods.length}]</p>,
   },
   {
-    accessorKey: "created_at",
-    header: () => <div>Created At</div>,
+    accessorKey: "total price",
+    header: () => <div>Total Price</div>,
     cell: ({ row }) => {
-      const date = new Date(
-        parseInt(row.original.created_at.$date.$numberLong, 10)
-      );
-      return <span>{date.toLocaleDateString()}</span>;
+      const price = row.original.totalPrice;
+      const formatted = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(price);
+
+      return <span>{formatted}</span>;
     },
   },
   {
-    accessorKey: "updated_at",
-    header: () => <div>Updated At</div>,
+    accessorKey: "total paid",
+    header: () => <div>Total Paid</div>,
     cell: ({ row }) => {
-      const date = new Date(
-        parseInt(row.original.updated_at.$date.$numberLong, 10)
+      const totalPaid = row.original.totalPaid;
+      const formatted = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(totalPaid);
+
+      return <span>{formatted}</span>;
+    },
+  },
+  {
+    accessorKey: "status",
+    header: () => <div className="text-center">Status</div>,
+    cell: ({ row }) => {
+      const status = row.original.status;
+      const statusStyles = {
+        Paid: "text-green-500",
+        UnPaid: "text-red-500",
+        PartialPaid: "text-yellow-500",
+      };
+
+      return (
+        <span
+          className={
+            `font-bold text-center ${statusStyles[status]}` || "text-gray-500"
+          }
+        >
+          {status}
+        </span>
       );
-      return <span>{date.toLocaleDateString()}</span>;
+    },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const invoice = row.original;
+      let navigate = useNavigate();
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem asChild>
+              <Button onClick={() => {}}>print</Button>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate(`${invoice._id.$oid}`)}>
+              View Invoice
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
     },
   },
 ];

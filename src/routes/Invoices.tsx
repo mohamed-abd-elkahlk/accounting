@@ -1,25 +1,18 @@
 import { useGetInvoices } from "@/api/queries";
 import { invoiceColumns } from "@/components/columns";
 import { DataTable } from "@/components/data-table";
+import ErrorResponsePage from "@/components/shared/ErrorResponsePage";
 import NewInvoice from "@/components/shared/NewInvoice";
+import InvoicesSkeleton from "@/components/skeleton/InvoiceSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableCaption,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
-import { useEffect, useState } from "react";
+
+import { useState } from "react";
 import {
   FaFileInvoiceDollar,
   FaCheckCircle,
   FaClock,
   FaExclamationCircle,
 } from "react-icons/fa";
-import { Link } from "react-router-dom";
 
 // Invoice stats data
 const invoiceStats = [
@@ -49,56 +42,15 @@ const invoiceStats = [
   },
 ];
 
-// Sample invoices data with new fields
-const invoices = [
-  {
-    id: 1,
-    invoiceNumber: "INV001",
-    date: "2024-01-15",
-    dueDate: "2024-02-15",
-    amount: 1200,
-    status: "Paid",
-    username: "John Doe",
-    companyName: "Acme Corp",
-    address: "123 Main St, Springfield",
-  },
-  {
-    id: 2,
-    invoiceNumber: "INV002",
-    date: "2024-01-25",
-    dueDate: "2024-02-25",
-    amount: 1500,
-    status: "Pending",
-    username: "Jane Smith",
-    companyName: "Globex Inc",
-    address: "456 Elm St, Metropolis",
-  },
-  {
-    id: 3,
-    invoiceNumber: "INV003",
-    date: "2024-02-01",
-    dueDate: "2024-03-01",
-    amount: 1800,
-    status: "Overdue",
-    username: "Alice Johnson",
-    companyName: "Initech",
-    address: "789 Oak St, Gotham",
-  },
-];
-
 export default function Invoices() {
   const [stats] = useState(invoiceStats);
   const { data: invoices, isPending, error } = useGetInvoices();
-  // useEffect(() => {
-
-  // });
-  console.log(invoices);
 
   if (isPending) {
-    return <div>loading</div>;
+    return <InvoicesSkeleton />;
   }
   if (error) {
-    return <div>error:{error.message}</div>;
+    return <ErrorResponsePage error={error} />;
   }
   return (
     <div className="px-4 md:px-16 py-8 w-full">
@@ -134,10 +86,14 @@ export default function Invoices() {
 
         {/* Invoice List */}
         <div className="mt-10">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
             Invoice List
           </h2>
-          <DataTable columns={invoiceColumns} data={invoices} />
+          <DataTable
+            columns={invoiceColumns}
+            data={invoices}
+            context="invoice"
+          />
         </div>
       </div>
     </div>
