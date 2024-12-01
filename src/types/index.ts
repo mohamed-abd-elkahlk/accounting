@@ -15,6 +15,7 @@ export type Client = {
   city: string;
   address: string;
   profilePic?: string | null;
+  status: "InActive" | "Active";
   // Financial fields
   invoices?: string[];
   totalOwed?: number | null;

@@ -1,6 +1,6 @@
 export enum QUERY_KEYS {
   // Clinets KEYS
-  GET_ClINET = "getClinet",
+  GET_CLIENT = "getClinet",
   GET_ClINET_BY_ID = "getClinetById",
 
   // Product KEYS

@@ -1,3 +1,6 @@
+use core::fmt;
+use std::fmt::Display;
+
 use mongodb::bson::{oid::ObjectId, DateTime};
 use serde::{Deserialize, Serialize};
 
@@ -11,7 +14,7 @@ pub struct Client {
     pub company_name: String,
     pub city: String,
     pub address: String,
-
+    pub status: ClinetStatus,
     // Financial fields
     pub invoices: Vec<ObjectId>,
     pub total_owed: f64,          // Total amount the client owes
@@ -33,4 +36,19 @@ pub struct NewClient {
     pub company_name: String,
     pub city: String,
     pub address: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum ClinetStatus {
+    Active,
+    InActive,
+}
+
+impl Display for ClinetStatus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ClinetStatus::Active => write!(f, "Active"),
+            ClinetStatus::InActive => write!(f, "InActive"),
+        }
+    }
 }

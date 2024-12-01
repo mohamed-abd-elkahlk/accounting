@@ -6,7 +6,7 @@ import {
   FaCalendar,
   FaWarehouse,
 } from "react-icons/fa";
-import { useDeleteProduct, useGetProductByID } from "@/api/queries"; // Mocked query hook
+import { useGetProductByID } from "@/api/queries"; // Mocked query hook
 import { formatData } from "@/lib/utils";
 import AlertDialogButton from "./AlertDialogButton";
 import UpdateProduct from "./UpdateProduct";
@@ -26,27 +26,19 @@ export default function ProductDetails() {
     isPending,
   } = useGetProductByID(productId!);
 
-  const {
-    data: deleteResponse,
-    isError: isProductDeleteError,
-    isPending: isProductPending,
-    isSuccess: isDeleteSuccess,
-    mutate: onDelete,
-  } = useDeleteProduct(productId!);
-
   // Handle success and error for delete operation
-  useEffect(() => {
-    if (isProductDeleteError) {
-      toast({
-        variant: "destructive",
-        title: "Failed to delete product",
-      });
-    }
-    if (isDeleteSuccess) {
-      toast({ variant: "success", title: deleteResponse });
-      navigate(-1); // Navigate back
-    }
-  }, [isProductDeleteError, isDeleteSuccess, deleteResponse, toast, navigate]);
+  // useEffect(() => {
+  //   if (isProductDeleteError) {
+  //     toast({
+  //       variant: "destructive",
+  //       title: "Failed to delete product",
+  //     });
+  //   }
+  //   if (isDeleteSuccess) {
+  //     toast({ variant: "success", title: deleteResponse });
+  //     navigate(-1); // Navigate back
+  //   }
+  // }, [isProductDeleteError, isDeleteSuccess, deleteResponse, toast, navigate]);
 
   if (isError) return <div>{error.message}</div>;
   if (isPending) return <ProductDetailsSkeleton />;
@@ -88,11 +80,11 @@ export default function ProductDetails() {
         </div>
         <div className="flex gap-6 ml-auto">
           {product && <UpdateProduct product={product} />}
-          <AlertDialogButton
+          {/* <AlertDialogButton
             isPending={isProductPending}
             onClick={onDelete}
             whatToDelete={product?.name || "product"}
-          />
+          /> */}
         </div>
       </div>
 

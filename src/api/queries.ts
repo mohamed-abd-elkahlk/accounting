@@ -1,17 +1,16 @@
-import { Invoice, NewClient, NewInvoice, NewProduct } from "@/types";
+import { NewClient, NewInvoice, NewProduct } from "@/types";
 import {
   useQuery,
   useMutation,
   useQueryClient,
-  useInfiniteQuery,
+  // useInfiniteQuery,
 } from "@tanstack/react-query";
 import {
+  activateClientById,
   createInvoice,
   createNewClient,
   createProudct,
-  deleteClientById,
-  deleteInvoice,
-  deleteProduct,
+  deactivateClientById,
   getAllClients,
   getAllInvoices,
   getAllProducts,
@@ -35,7 +34,7 @@ export const useCreateNewClient = () => {
     mutationFn: (clinet: NewClient) => createNewClient(clinet),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_ClINET],
+        queryKey: [QUERY_KEYS.GET_CLIENT],
       });
     },
   });
@@ -46,27 +45,50 @@ export const useUpdateClient = (clientId: string) => {
   return useMutation({
     mutationFn: (client: NewClient) => updateCLientById(clientId, client),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ClINET] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_CLIENT] });
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_ClINET_BY_ID, clientId],
       });
     },
   });
 };
-export const useDeleteClient = (clientId: string) => {
+// Hook for deactivating a client
+export const useDeactivateClient = (clientId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => deleteClientById(clientId),
+    mutationFn: () => deactivateClientById(clientId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ClINET] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_ClINET_BY_ID, clientId],
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to deactivate client:", error);
+    },
+  });
+};
+
+// Hook for activating a client
+export const useActivateClient = (clientId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => activateClientById(clientId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_ClINET_BY_ID, clientId],
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to activate client:", error);
     },
   });
 };
 export const useGetClinets = () => {
   return useQuery({
     queryFn: () => getAllClients(),
-    queryKey: [QUERY_KEYS.GET_ClINET],
+    queryKey: [QUERY_KEYS.GET_CLIENT],
   });
 };
 
@@ -119,16 +141,6 @@ export const useCraeteNewProduct = () => {
   });
 };
 
-export const useDeleteProduct = (productId: string) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => deleteProduct(productId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_PRODUCT] });
-    },
-  });
-};
-
 // Fetch all invoices
 export const useGetInvoices = () => {
   return useQuery({
@@ -167,19 +179,6 @@ export const useCreateNewInvoice = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (newInvoice: NewInvoice) => createInvoice(newInvoice),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_ALL_INVOICES],
-      });
-    },
-  });
-};
-
-// Delete an invoice by ID
-export const useDeleteInvoice = (invoiceId: string) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => deleteInvoice(invoiceId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_ALL_INVOICES],

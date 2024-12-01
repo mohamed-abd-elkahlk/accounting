@@ -20,6 +20,8 @@ export async function createNewClient(client: NewClient): Promise<Client> {
     const data = await invoke<Client>("add_new_client", { client });
     return data;
   } catch (error: any) {
+    console.log(error);
+
     // Handle error and re-throw as QueryError
     const errorMessage = error.message || "An unknown error occurred";
     const errorCode = error.code || 500; // Default to 500 if code is not provided
@@ -83,22 +85,41 @@ export async function updateCLientById(
   }
 }
 
-export async function deleteClientById(clientId: string): Promise<string> {
+export async function deactivateClientById(clientId: string): Promise<Client> {
   try {
-    const deleted = await invoke<string>("delete_client", {
+    const updatedClient = await invoke<Client>("deactive_client", {
       clientId,
     });
-    return deleted;
+    return updatedClient;
   } catch (error: any) {
     // Handle error and re-throw as QueryError
-    const errorMessage = error.message || "An unknown error occurred";
-    const errorCode = error.code || 500; // Default to 500 if code is not provided
+    const errorMessage =
+      error.message ||
+      "An unknown error occurred while deactivating the client";
+    const errorCode = error.code || 500;
     const errorDetails = error.details || null;
 
     throw new QueryError(errorMessage, errorCode, errorDetails);
   }
 }
 
+// Function to activate a client
+export async function activateClientById(clientId: string): Promise<Client> {
+  try {
+    const updatedClient = await invoke<Client>("activate_client", {
+      clientId,
+    });
+    return updatedClient;
+  } catch (error: any) {
+    // Handle error and re-throw as QueryError
+    const errorMessage =
+      error.message || "An unknown error occurred while activating the client";
+    const errorCode = error.code || 500;
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
+  }
+}
 // ============================================================
 // Product API Calls
 // ============================================================
@@ -118,21 +139,7 @@ export async function createProudct(product: NewProduct): Promise<Product> {
     throw new QueryError(errorMessage, errorCode, errorDetails);
   }
 }
-export async function deleteProduct(productId: string): Promise<string> {
-  try {
-    let data = await invoke<string>("delete_product", {
-      productId,
-    });
-    return data;
-  } catch (error: any) {
-    // Handle error and re-throw as QueryError
-    const errorMessage = error.message || "An unknown error occurred";
-    const errorCode = error.code || 500; // Default to 500 if code is not provided
-    const errorDetails = error.details || null;
 
-    throw new QueryError(errorMessage, errorCode, errorDetails);
-  }
-}
 export async function getAllProducts(): Promise<Product[]> {
   try {
     let data = await invoke<Product[]>("get_all_products");
@@ -188,21 +195,6 @@ export async function createInvoice(newInvoice: NewInvoice): Promise<Invoice> {
     });
     console.log(data);
 
-    return data;
-  } catch (error: any) {
-    const errorMessage = error.message || "An unknown error occurred";
-    const errorCode = error.code || 500;
-    const errorDetails = error.details || null;
-
-    throw new QueryError(errorMessage, errorCode, errorDetails);
-  }
-}
-
-export async function deleteInvoice(invoiceId: string): Promise<string> {
-  try {
-    const data = await invoke<string>("delete_invoice", {
-      invoiceId,
-    });
     return data;
   } catch (error: any) {
     const errorMessage = error.message || "An unknown error occurred";

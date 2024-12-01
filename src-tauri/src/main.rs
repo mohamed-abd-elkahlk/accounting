@@ -7,7 +7,8 @@ mod schema;
 mod utils;
 use commands::{
     client_command::{
-        add_new_client, delete_client, find_client_by_id, list_all_clients, update_client,
+        activate_client, add_new_client, deactive_client, find_client_by_id, list_all_clients,
+        update_client,
     },
     invoice_command::{create_invoice, get_invoice_by_id, list_all_invoices, update_invoice_by_id},
     product_command::{
@@ -46,7 +47,8 @@ fn main() {
                     list_all_clients,
                     update_client,
                     find_client_by_id,
-                    delete_client,
+                    deactive_client,
+                    activate_client,
                     create_product,
                     delete_product,
                     get_all_products,

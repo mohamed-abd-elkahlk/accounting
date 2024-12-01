@@ -1,16 +1,21 @@
-import { useNavigate, useParams } from "react-router-dom";
-import { useDeleteClient, useGetClinetById } from "@/api/queries";
+import { useParams } from "react-router-dom";
+import {
+  useActivateClient,
+  useDeactivateClient,
+  useGetClinetById,
+} from "@/api/queries";
 import UpdateClient from "@/components/shared/UpdateClient";
-import AlertDialogButton from "@/components/shared/AlertDialogButton";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import ClientDetailsSkeleton from "@/components/skeleton/ClientDetailsSkeleton";
 import ClinetCardInfo from "@/components/shared/ClinetCardInfo";
+import { Button } from "@/components/ui/button";
+
 export default function ClientDetails() {
   const { clientsId } = useParams(); // Extract clientsId from URL
   const { toast } = useToast();
-  const navigate = useNavigate();
 
+  // Fetch client details
   const {
     data: client,
     error,
@@ -18,28 +23,33 @@ export default function ClientDetails() {
     isPending,
   } = useGetClinetById(clientsId!);
 
-  const {
-    mutate: deleteClinet,
-    isError: isDeletingError,
-    isPending: isDeletingPending,
-    isSuccess,
-    data,
-  } = useDeleteClient(clientsId!);
+  // Mutations for activating and deactivating the client
+  const activateClientMutation = useActivateClient(clientsId!);
+  const deactivateClientMutation = useDeactivateClient(clientsId!);
 
-  // Handle toast notifications and navigation
+  // Handle toast notifications for status updates
   useEffect(() => {
-    if (isDeletingError) {
+    if (activateClientMutation.isError || deactivateClientMutation.isError) {
       toast({
         variant: "destructive",
-        title: `Failed to delete Client`,
+        title: `Failed to update client status`,
       });
     }
 
-    if (isSuccess) {
-      toast({ variant: "success", title: data });
-      navigate(-1);
+    if (activateClientMutation.isSuccess) {
+      toast({ variant: "success", title: "Client activated successfully" });
     }
-  }, [isDeletingError, isSuccess, toast, navigate, data]);
+
+    if (deactivateClientMutation.isSuccess) {
+      toast({ variant: "success", title: "Client deactivated successfully" });
+    }
+  }, [
+    activateClientMutation.isError,
+    deactivateClientMutation.isError,
+    activateClientMutation.isSuccess,
+    deactivateClientMutation.isSuccess,
+    toast,
+  ]);
 
   // Function to determine the badge color based on status
   const getStatusBadge = (status: string) => {
@@ -78,18 +88,30 @@ export default function ClientDetails() {
         <div>
           <h1 className="text-2xl font-semibold flex items-center">
             {client.username}
-            <div className="ml-4">{getStatusBadge("active")}</div>{" "}
+            <div className="ml-4">{getStatusBadge(client.status)}</div>{" "}
             {/* Status Badge */}
           </h1>
           <p className="text-gray-600">{client.company_name}</p>
         </div>
         <div className="flex gap-6 ml-auto">
           <UpdateClient client={client} />
-          <AlertDialogButton
-            isPending={isDeletingPending}
-            onClick={deleteClinet}
-            whatToDelete="client"
-          />
+          {client.status === "Active" ? (
+            <Button
+              disabled={deactivateClientMutation.isPending}
+              onClick={() => deactivateClientMutation.mutate()}
+              className="bg-red-500"
+            >
+              Deactivate
+            </Button>
+          ) : (
+            <Button
+              disabled={activateClientMutation.isPending}
+              onClick={() => activateClientMutation.mutate()}
+              className="bg-cyan-500"
+            >
+              Active
+            </Button>
+          )}
         </div>
       </div>
 

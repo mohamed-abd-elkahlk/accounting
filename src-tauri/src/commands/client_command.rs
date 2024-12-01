@@ -1,7 +1,7 @@
 use crate::{
     db::MongoDbState,
     schema::{
-        client_schema::{Client, NewClient},
+        client_schema::{Client, ClinetStatus, NewClient},
         collections::Collection,
         error::{AppResult, ErrorResponse},
     },
@@ -35,6 +35,7 @@ pub async fn add_new_client(
         total_owed: 0.0,           // Assuming new client has no debt
         total_paid: 0.0,           // Assuming new client has not paid anything yet
         outstanding_balance: 0.0,  // Assuming no outstanding balance initially
+        status: ClinetStatus::Active,
         created_at: MongoDateTime::now(),
         updated_at: MongoDateTime::now(),
     };
@@ -163,28 +164,62 @@ pub async fn find_client_by_id(
 
 // Delete client by Id
 #[tauri::command]
-pub async fn delete_client(
+pub async fn deactive_client(
     db: State<'_, Mutex<MongoDbState>>,
     client_id: String,
-) -> AppResult<String> {
+) -> AppResult<Client> {
     // Lock the database to safely access it
     let db = db.lock().await;
-    let collection = db.get_collection::<Document>(Collection::Client);
+    let collection = db.get_collection::<Client>(Collection::Client);
+
+    // Parse the client ID into an ObjectId
     let id = parse_object_id(&client_id, "Client")?;
-    // Perform the delete operation
-    let result = collection
-        .delete_one(
-            doc! { "_id": id}, // Filter by client ID
+
+    // Define the update document
+    let update = doc! { "$set": { "status": ClinetStatus::InActive.to_string() } };
+
+    // Perform the update operation and retrieve the updated document
+    let updated_client = collection
+        .find_one_and_update(
+            doc! { "_id": id }, // Filter by client ID
+            update,             // Set the status to Inactive
         )
         .await
-        .map_err(|e| ErrorResponse::new(500, "Failed to delete client", Some(e.to_string())))?;
+        .map_err(|e| ErrorResponse::new(500, "Failed to deactivate client", Some(e.to_string())))?;
 
-    // Check if a document was deleted
-    if result.deleted_count == 1 {
-        // Return success message if one document was deleted
-        Ok(format!("Client with ID {} deleted successfully", client_id))
-    } else {
-        // Return error if no document was found to delete
-        Err(ErrorResponse::new(404, "Client not found", None))
-    }
+    // Handle the case where no document was found
+    let updated_client =
+        updated_client.ok_or_else(|| ErrorResponse::new(404, "Client not found", None))?;
+
+    Ok(updated_client)
+}
+
+#[tauri::command]
+pub async fn activate_client(
+    db: State<'_, Mutex<MongoDbState>>,
+    client_id: String,
+) -> AppResult<Client> {
+    // Lock the database to safely access it
+    let db = db.lock().await;
+    let collection = db.get_collection::<Client>(Collection::Client);
+
+    // Parse the client ID into an ObjectId
+    let id = parse_object_id(&client_id, "Client")?;
+
+    // Define the update document to set the status to "Active"
+    let update = doc! { "$set": { "status": ClinetStatus::Active.to_string() } };
+
+    let updated_client_doc = collection
+        .find_one_and_update(
+            doc! { "_id": id, "status": { "$ne": ClinetStatus::Active.to_string() } }, // Update only if not active
+            update,
+        )
+        .await
+        .map_err(|e| ErrorResponse::new(500, "Failed to activate client", Some(e.to_string())))?;
+
+    // Handle case where no document was updated (client already active or not found)
+    let updated_client_doc = updated_client_doc
+        .ok_or_else(|| ErrorResponse::new(404, "Client not found or already active", None))?;
+
+    Ok(updated_client_doc)
 }
