@@ -1,4 +1,4 @@
-use std::{borrow::BorrowMut, collections::HashMap};
+use std::collections::HashMap;
 
 use futures::StreamExt;
 use mongodb::bson::{self, doc, oid::ObjectId, DateTime, Document};
@@ -28,6 +28,11 @@ pub async fn create_invoice(
     // Step 1: Start a transaction
     let mut session = db.start_session().await?;
     session.start_transaction().await.map_err(|e| {
+        logger::log_error(
+            "Failed to start MongoDB transaction.",
+            500,
+            Some(&e.to_string()),
+        );
         ErrorResponse::new(
             500,
             "Failed to start MongoDB transaction.",
@@ -50,6 +55,7 @@ pub async fn create_invoice(
             Ok(doc) => Ok(doc.unwrap()),
             Err(e) => {
                 session.abort_transaction().await.ok();
+                logger::log_error("Product not found", 404, Some(&e.to_string()));
                 Err(ErrorResponse::new(
                     404,
                     "Product not found",
@@ -63,6 +69,11 @@ pub async fn create_invoice(
             .map_err(|e| ErrorResponse::new(500, "Invalid stock data.", Some(e.to_string())))?;
         if stock < goods.quantity as i64 {
             session.abort_transaction().await.ok();
+            logger::log_error(
+                &format!("Insufficient stock for product: {}", goods.name).as_str(),
+                400,
+                None,
+            );
             return Err(ErrorResponse::new(
                 400,
                 format!("Insufficient stock for product: {}", goods.name).as_str(),
@@ -83,6 +94,11 @@ pub async fn create_invoice(
             Ok(_) => Ok(()), // Returns `Result<(), SomeErrorType>`
             Err(e) => {
                 session.abort_transaction().await.ok();
+                logger::log_error(
+                    &format!("Failed to update Product with ID: {}", product_id),
+                    400,
+                    Some(&e.to_string()),
+                );
                 Err(ErrorResponse::new(
                     400,
                     &format!("Failed to update Product with ID: {}", product_id),
@@ -96,6 +112,11 @@ pub async fn create_invoice(
     // Check if total price greater than total paid
     if total_price < new_invoice.total_paid {
         session.abort_transaction().await.ok();
+        logger::log_error(
+            "Total paid must be less than or equial total price",
+            400,
+            None,
+        );
         return Err(ErrorResponse::new(
             400,
             "Total paid must be less than or equial total price",
@@ -135,6 +156,7 @@ pub async fn create_invoice(
         }
         Err(e) => {
             session.abort_transaction().await.ok();
+            logger::log_error(&format!("Failed to insert invoice: {}", e), 500, None);
             return Err(ErrorResponse::new(
                 500,
                 &format!("Failed to insert invoice: {}", e),
@@ -144,13 +166,18 @@ pub async fn create_invoice(
     }
     // Commit the transaction
     session.commit_transaction().await.map_err(|e| {
+        logger::log_error(
+            "Failed to commit MongoDB transaction.",
+            500,
+            Some(&e.to_string()),
+        );
         ErrorResponse::new(
             500,
             "Failed to commit MongoDB transaction.",
             Some(e.to_string()),
         )
     })?;
-
+    logger::log_info("Create new invoice", 201, None);
     Ok(())
 }
 
@@ -159,7 +186,9 @@ pub async fn list_all_invoices(db: State<'_, Mutex<MongoDbState>>) -> AppResult<
     let db = db.lock().await;
     let invoice_collection = db.get_collection::<Document>(Collection::Invoice);
     let cursor = invoice_collection.find(doc! {}).await.map_err(|e| {
-        ErrorResponse::new(500, "Faild to serialize invoice data", Some(e.to_string()))
+        logger::log_error("Faild to serialize invoice data", 500, Some(&e.to_string()));
+
+        ErrorResponse::new(500, "Failed to serialize invoice data", Some(e.to_string()))
     })?;
 
     let invoices: Vec<Invoice> = {
@@ -171,6 +200,12 @@ pub async fn list_all_invoices(db: State<'_, Mutex<MongoDbState>>) -> AppResult<
                 Ok(doc) => match bson::from_document::<Invoice>(doc) {
                     Ok(invoice) => invoice_vec.push(invoice), // Add valid invoices to the vector
                     Err(e) => {
+                        logger::log_error(
+                            "Failed to serialize invoice data",
+                            500,
+                            Some(&e.to_string()),
+                        );
+
                         return Err(ErrorResponse::new(
                             500,
                             "Failed to serialize invoice data",
@@ -179,6 +214,12 @@ pub async fn list_all_invoices(db: State<'_, Mutex<MongoDbState>>) -> AppResult<
                     }
                 },
                 Err(e) => {
+                    logger::log_error(
+                        "Failed to retrieve a document from the cursor",
+                        500,
+                        Some(&e.to_string()),
+                    );
+
                     return Err(ErrorResponse::new(
                         500,
                         "Failed to retrieve a document from the cursor",
@@ -190,6 +231,11 @@ pub async fn list_all_invoices(db: State<'_, Mutex<MongoDbState>>) -> AppResult<
 
         invoice_vec
     };
+    logger::log_info(
+        &format!("List all invices with count: {}", invoices.len()),
+        200,
+        None,
+    );
     Ok(invoices)
 }
 
@@ -203,12 +249,26 @@ pub async fn get_invoice_by_id(
     let id = parse_object_id(&invoice_id, "Invoice")?;
     let invoice = match invoice_collection.find_one(doc! {"_id":id}).await {
         Ok(doc) => Ok(doc.unwrap()),
-        Err(e) => Err(ErrorResponse::new(
-            404,
-            &format!("invoice wiht this ID: {invoice_id}"),
-            Some(e.to_string()),
-        )),
+
+        Err(e) => {
+            logger::log_error(
+                &format!("No Invoice wiht this ID: {invoice_id}"),
+                404,
+                Some(&e.to_string()),
+            );
+
+            Err(ErrorResponse::new(
+                404,
+                &format!("No Invoice wiht this ID: {invoice_id}"),
+                Some(e.to_string()),
+            ))
+        }
     }?;
+    logger::log_info(
+        &format!("Found Invoice wiht this ID: {invoice_id}"),
+        200,
+        None,
+    );
 
     Ok(invoice)
 }
@@ -222,13 +282,20 @@ pub async fn update_invoice_by_id(
     let db = db.lock().await;
 
     // Start a session
-    let mut session =
-        db.client.start_session().await.map_err(|e| {
-            ErrorResponse::new(500, &format!("Failed to start session: {}", e), None)
-        })?;
+    let mut session = db.start_session().await?;
 
     session.start_transaction().await.map_err(|e| {
-        ErrorResponse::new(500, &format!("Failed to start transaction: {}", e), None)
+        logger::log_error(
+            &format!("Failed to start transaction: {}", e),
+            500,
+            Some(&e.to_string()),
+        );
+
+        ErrorResponse::new(
+            500,
+            &format!("Failed to start transaction: {}", e),
+            Some(e.to_string()),
+        )
     })?;
 
     let invoice_collection = db.get_collection::<Invoice>(Collection::Invoice);
@@ -242,7 +309,10 @@ pub async fn update_invoice_by_id(
         .find_one(doc! { "_id": id })
         .session(&mut session)
         .await
-        .map_err(|e| ErrorResponse::new(400, &e.to_string(), None))?
+        .map_err(|e| {
+            logger::log_error(&e.to_string(), 400, None);
+            ErrorResponse::new(400, &e.to_string(), None)
+        })?
         .ok_or_else(|| ErrorResponse::new(404, "Invoice not found", None))?;
 
     updated_invoice_doc.insert("status", Status::UnPaid.to_string());
@@ -254,6 +324,8 @@ pub async fn update_invoice_by_id(
         Ok(doc) => doc,
         Err(e) => {
             session.abort_transaction().await.ok();
+            logger::log_error(&format!("Invalid invoice data: {}", e), 400, None);
+
             return Err(ErrorResponse::new(
                 400,
                 &format!("Invalid invoice data: {}", e),
@@ -289,6 +361,7 @@ pub async fn update_invoice_by_id(
                 Ok(_) => (),
                 Err(e) => {
                     session.abort_transaction().await.ok();
+                    logger::log_error("Faild to update invoice", 500, Some(&e.to_string()));
 
                     return Err(ErrorResponse::new(
                         500,
@@ -315,6 +388,8 @@ pub async fn update_invoice_by_id(
                 Ok(_) => (),
                 Err(e) => {
                     session.abort_transaction().await.ok();
+                    logger::log_error(&e.to_string(), 500, None);
+
                     return Err(ErrorResponse::new(500, &e.to_string(), None))?;
                 }
             }
@@ -331,6 +406,8 @@ pub async fn update_invoice_by_id(
                 Ok(_) => (),
                 Err(e) => {
                     session.abort_transaction().await.ok();
+                    logger::log_error(&e.to_string(), 500, None);
+
                     return Err(ErrorResponse::new(500, &e.to_string(), None))?;
                 }
             }
@@ -346,6 +423,12 @@ pub async fn update_invoice_by_id(
     // Check if total price greater than total paid
     if total_price < updated_invoice.total_paid {
         session.abort_transaction().await.ok();
+        logger::log_error(
+            "Total paid must be less than or equial total price",
+            400,
+            None,
+        );
+
         return Err(ErrorResponse::new(
             400,
             "Total paid must be less than or equial total price",
@@ -367,6 +450,7 @@ pub async fn update_invoice_by_id(
         total_price,
         status,
         updated_at: DateTime::now(),
+        created_at: existing_invoice.created_at,
         ..updated_invoice
     };
 
@@ -378,14 +462,23 @@ pub async fn update_invoice_by_id(
         Ok(_) => (),
         Err(e) => {
             session.abort_transaction().await.ok();
+            logger::log_error(&e.to_string(), 500, None);
+
             return Err(ErrorResponse::new(500, &e.to_string(), None))?;
         }
     }
 
     // Commit the transaction
     session.commit_transaction().await.map_err(|e| {
+        logger::log_error(&format!("Failed to commit transaction: {}", e), 500, None);
+
         ErrorResponse::new(500, &format!("Failed to commit transaction: {}", e), None)
     })?;
+    logger::log_info(
+        &format!("Update invoice wiht ID: {}", invoice_id),
+        500,
+        None,
+    );
 
     Ok(())
 }

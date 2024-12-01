@@ -41,21 +41,29 @@ pub async fn add_new_client(
     };
     // Serialize the client data into a BSON document
     let doc = to_document(&client).map_err(|e| {
+        logger::log_error("Failed to serialize client data", 400, Some(&e.to_string()));
         ErrorResponse::new(400, "Failed to serialize client data", Some(e.to_string()))
     })?;
 
     // Insert the document into the MongoDB collection
     let result = collection.insert_one(doc).await.map_err(|e| {
+        logger::log_error("Failed to insert into database", 500, Some(&e.to_string()));
+
         ErrorResponse::new(500, "Failed to insert into database", Some(e.to_string()))
     })?;
 
     // Extract the inserted ID and convert it to ObjectId
     let inserted_id = match result.inserted_id {
         Bson::ObjectId(id) => id,
-        _ => return Err(ErrorResponse::new(500, "Invalid inserted ID", None)),
+        _ => {
+            logger::log_error("Invalid inserted ID", 500, None);
+
+            return Err(ErrorResponse::new(500, "Invalid inserted ID", None));
+        }
     };
     // Return the newly created Client struct with necessary fields populated
     client.id = Some(inserted_id);
+    logger::log_info("Created new client ", 200, None);
     Ok(client)
 }
 
@@ -65,21 +73,24 @@ pub async fn list_all_clients(db: State<'_, Mutex<MongoDbState>>) -> AppResult<V
     let collection = db.get_collection::<Client>(Collection::Client);
 
     // Perform the query to fetch all documents
-    let mut cursor = collection
-        .find(doc! {})
-        .await
-        .map_err(|e| ErrorResponse::new(500, "Failed to fetch clients", Some(e.to_string())))?;
+    let mut cursor = collection.find(doc! {}).await.map_err(|e| {
+        logger::log_error("Failed to fetch clients", 500, None);
+
+        ErrorResponse::new(500, "Failed to fetch clients", Some(e.to_string()))
+    })?;
 
     // Collect all documents into a Vec<Client>
     let mut clients: Vec<Client> = Vec::new();
 
-    while let Some(doc) = cursor
-        .try_next()
-        .await
-        .map_err(|e| ErrorResponse::new(500, "fiald to parese client data", Some(e.to_string())))?
-    {
+    while let Some(doc) = cursor.try_next().await.map_err(|e| {
+        logger::log_error("Failed to parese client data", 500, None);
+
+        ErrorResponse::new(500, "Failed to parese client data", Some(e.to_string()))
+    })? {
         clients.push(doc);
     }
+    logger::log_info("Retrun all clients", 200, None);
+
     Ok(clients)
 }
 
@@ -112,21 +123,34 @@ pub async fn update_client(
         )
         .await
         .map_err(|e| {
+            logger::log_error("Failed to update client data", 500, Some(&e.to_string()));
+
             ErrorResponse::new(500, "Failed to update client data", Some(e.to_string()))
         })?;
 
     match result {
         Some(updated_doc) => {
             let updated_client = bson::from_document::<Client>(updated_doc).map_err(|e| {
+                logger::log_error(
+                    "Failed to deserialize updated client",
+                    500,
+                    Some(&e.to_string()),
+                );
+
                 ErrorResponse::new(
                     500,
                     "Failed to deserialize updated client",
                     Some(e.to_string()),
                 )
             })?;
+            logger::log_info("Retrun updated document", 200, None);
+
             Ok(updated_client)
         }
-        None => Err(ErrorResponse::new(404, "Client not found", None)),
+        None => {
+            logger::log_error("Client not found", 404, None);
+            Err(ErrorResponse::new(404, "Client not found", None))
+        }
     }
 }
 
@@ -147,17 +171,32 @@ pub async fn find_client_by_id(
     let client_doc = collection
         .find_one(filter)
         .await
-        .map_err(|e| ErrorResponse::new(500, "Failed to find client", Some(e.to_string())))?
+        .map_err(|e| {
+            logger::log_error("Failed to find client", 404, Some(&e.to_string()));
+
+            ErrorResponse::new(500, "Failed to find client", Some(e.to_string()))
+        })?
         .ok_or_else(|| ErrorResponse::new(404, "Client not found", None))?;
 
     // Deserialize the document into a Client struct
     let client = bson::from_document::<Client>(client_doc).map_err(|e| {
+        logger::log_error(
+            "Failed to deserialize client data",
+            500,
+            Some(&e.to_string()),
+        );
+
         ErrorResponse::new(
             500,
             "Failed to deserialize client data",
             Some(e.to_string()),
         )
     })?;
+    logger::log_info(
+        &format!("Find clinet with ID: {}", client.id.unwrap()),
+        200,
+        None,
+    );
 
     Ok(client)
 }
@@ -185,11 +224,22 @@ pub async fn deactive_client(
             update,             // Set the status to Inactive
         )
         .await
-        .map_err(|e| ErrorResponse::new(500, "Failed to deactivate client", Some(e.to_string())))?;
+        .map_err(|e| {
+            logger::log_error("Failed to deactivate client", 500, Some(&e.to_string()));
+            ErrorResponse::new(500, "Failed to deactivate client", Some(e.to_string()))
+        })?;
 
     // Handle the case where no document was found
     let updated_client =
         updated_client.ok_or_else(|| ErrorResponse::new(404, "Client not found", None))?;
+    logger::log_info(
+        &format!(
+            "Find and deactivate clinet with ID: {}",
+            updated_client.id.unwrap()
+        ),
+        200,
+        None,
+    );
 
     Ok(updated_client)
 }
@@ -215,11 +265,23 @@ pub async fn activate_client(
             update,
         )
         .await
-        .map_err(|e| ErrorResponse::new(500, "Failed to activate client", Some(e.to_string())))?;
+        .map_err(|e| {
+            logger::log_error("Failed to activate client", 500, Some(&e.to_string()));
+
+            ErrorResponse::new(500, "Failed to activate client", Some(e.to_string()))
+        })?;
 
     // Handle case where no document was updated (client already active or not found)
     let updated_client_doc = updated_client_doc
         .ok_or_else(|| ErrorResponse::new(404, "Client not found or already active", None))?;
+    logger::log_info(
+        &format!(
+            "Find and active clinet with ID: {}",
+            updated_client_doc.id.unwrap()
+        ),
+        200,
+        None,
+    );
 
     Ok(updated_client_doc)
 }

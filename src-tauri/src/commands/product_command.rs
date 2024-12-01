@@ -56,16 +56,23 @@ pub async fn delete_product(
 
     let id = parse_object_id(&product_id, "Product")?;
 
-    let result = collection
-        .delete_one(doc! {"_id":id})
-        .await
-        .map_err(|e| ErrorResponse::new(500, "Failed to delete client", Some(e.to_string())))?;
+    let result = collection.delete_one(doc! {"_id":id}).await.map_err(|e| {
+        logger::log_error("Failed to delete client", 500, Some(&e.to_string()));
+        ErrorResponse::new(500, "Failed to delete client", Some(e.to_string()))
+    })?;
     if result.deleted_count == 1 {
+        logger::log_info(
+            &format!("Product with ID {} deleted successfully", product_id),
+            204,
+            None,
+        );
         Ok(format!(
             "Product with ID {} deleted successfully",
             product_id
         ))
     } else {
+        logger::log_error("Client not found", 404, None);
+
         Err(ErrorResponse::new(404, "Client not found", None))
     }
 }
@@ -103,17 +110,30 @@ pub async fn get_product_by_id(
     let result = collection
         .find_one(doc! { "_id": object_id })
         .await
-        .map_err(|e| ErrorResponse::new(500, "Failed to fetch product", Some(e.to_string())))?;
+        .map_err(|e| {
+            logger::log_error("Failed to fetch product", 500, Some(&e.to_string()));
+            ErrorResponse::new(500, "Failed to fetch product", Some(e.to_string()))
+        })?;
 
     // Handle case where the product is not found
     let product = result.ok_or_else(|| {
+        logger::log_error(
+            "Product not found",
+            404,
+            Some("No product matches the given ID"),
+        );
+
         ErrorResponse::new(
             404,
             "Product not found",
             Some("No product matches the given ID".to_string()),
         )
     })?;
-
+    logger::log_info(
+        &format!("Found product wiht this ID:{product_id}",),
+        200,
+        None,
+    );
     Ok(product)
 }
 #[tauri::command]
@@ -140,6 +160,11 @@ pub async fn update_product(
         .update_one(doc! { "_id": object_id }, update_doc)
         .await
         .map_err(|e| {
+            logger::log_info(
+                "Failed to update product in the database",
+                500,
+                Some(&e.to_string()),
+            );
             ErrorResponse::new(
                 500,
                 "Failed to update product in the database",
@@ -149,6 +174,11 @@ pub async fn update_product(
 
     // Check if the product was updated
     if result.matched_count == 0 {
+        logger::log_info(
+            "Product not found",
+            404,
+            Some("No product matches the given ID"),
+        );
         return Err(ErrorResponse::new(
             404,
             "Product not found",
@@ -161,15 +191,21 @@ pub async fn update_product(
         .find_one(doc! { "_id": object_id })
         .await
         .map_err(|e| {
+            logger::log_info("Failed to fetch updated product", 500, Some(&e.to_string()));
             ErrorResponse::new(500, "Failed to fetch updated product", Some(e.to_string()))
         })?
         .ok_or_else(|| {
+            logger::log_info(
+                "Product not found",
+                404,
+                Some("No product found after update"),
+            );
             ErrorResponse::new(
                 404,
                 "Product not found",
                 Some("No product found after update".to_string()),
             )
         })?;
-
+    logger::log_info("Update product", 200, None);
     Ok(updated_product)
 }
