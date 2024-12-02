@@ -8,6 +8,7 @@ use tokio::sync::Mutex;
 use crate::{
     db::MongoDbState,
     schema::{
+        client_schema::Client,
         collections::Collection,
         error::{AppResult, ErrorResponse},
         invoice_schema::{Goods, Invoice, NewInvoice, Status},
@@ -149,10 +150,17 @@ pub async fn create_invoice(
         )
         .session(&mut session)
         .await;
-
-    match insert_result {
+    let inserted_invoice_id = match insert_result {
         Ok(res) => {
-            println!("{:?}", res)
+            logger::log_info(
+                &format!("Inserted invoice with ID: {:?}", res.inserted_id),
+                200,
+                None,
+            );
+            res.inserted_id.as_object_id().ok_or_else(|| {
+                logger::log_error("Failed to retrieve inserted invoice ID", 500, None);
+                ErrorResponse::new(500, "Failed to retrieve inserted invoice ID", None)
+            })?
         }
         Err(e) => {
             session.abort_transaction().await.ok();
@@ -163,7 +171,95 @@ pub async fn create_invoice(
                 None,
             ));
         }
+    };
+    let client_collection = db.get_collection::<Client>(Collection::Client);
+
+    // Fetch the client document
+    let client = match client_collection
+        .find_one(doc! { "_id": new_invoice.client_id })
+        .await
+    {
+        Ok(Some(doc)) => doc, // Successfully found the client document
+        Ok(None) => {
+            session.abort_transaction().await.ok();
+            logger::log_error(
+                &format!(
+                    "Failed to find client with ID: {} for Invoice ID: {}",
+                    new_invoice.client_id,
+                    new_invoice.id.unwrap_or_default()
+                ),
+                404,
+                None,
+            );
+            return Err(ErrorResponse::new(
+                404,
+                &format!("Client not found for ID: {}", new_invoice.client_id),
+                None,
+            ));
+        }
+        Err(e) => {
+            session.abort_transaction().await.ok();
+            logger::log_error(
+                &format!(
+                    "Failed to fetch client for Invoice ID: {}: {}",
+                    new_invoice.id.unwrap_or_default(),
+                    e
+                ),
+                500,
+                Some(&e.to_string()),
+            );
+            return Err(ErrorResponse::new(
+                500,
+                &format!(
+                    "Failed to fetch client for Invoice ID: {}",
+                    new_invoice.id.unwrap_or_default()
+                ),
+                Some(e.to_string()),
+            ));
+        }
+    };
+
+    // Calculate financial values
+    let total_paid = new_invoice.total_paid; // Amount paid for this invoice
+    let total_owed = total_price - total_paid; // Remaining balance for this invoice
+    let new_outstanding_balance = client.outstanding_balance + total_owed; // Client's updated outstanding balance
+
+    // Update the client document with the new totals
+    if let Err(e) = client_collection
+        .update_one(
+            doc! { "_id": new_invoice.client_id },
+            doc! {
+                "$inc": {
+                    "totalOwed": total_owed,
+                    "totalPaid": total_paid,
+                },
+                "$push": { "invoices": inserted_invoice_id },
+                "$set": {
+                    "outstanding_balance": new_outstanding_balance,
+                    "updated_at": DateTime::now(),
+                }
+            },
+        )
+        .session(&mut session)
+        .await
+    {
+        session.abort_transaction().await.ok();
+        logger::log_error(
+            &format!(
+                "Failed to update client with ID: {} for Invoice ID: {}",
+                new_invoice.client_id,
+                new_invoice.id.unwrap_or_default()
+            ),
+            500,
+            Some(&e.to_string()),
+        );
+        return Err(ErrorResponse::new(
+            500,
+            "Failed to update client.",
+            Some(e.to_string()),
+        ));
     }
+
     // Commit the transaction
     session.commit_transaction().await.map_err(|e| {
         logger::log_error(
@@ -453,7 +549,53 @@ pub async fn update_invoice_by_id(
         created_at: existing_invoice.created_at,
         ..updated_invoice
     };
+    let client_collection = db.get_collection::<Client>(Collection::Client);
+    // Calculate financial adjustments
+    let original_total_paid = existing_invoice.total_paid;
+    let original_total_owed = existing_invoice.total_price - original_total_paid;
 
+    let updated_total_paid = updated_invoice.total_paid;
+    let updated_total_owed = total_price - updated_total_paid;
+
+    // Adjust outstanding balance
+    let outstanding_balance_adjustment = updated_total_owed - original_total_owed;
+
+    // Update the client's financial records directly
+    if let Err(e) = client_collection
+        .update_one(
+            doc! { "_id": updated_invoice.client_id },
+            doc! {
+                "$inc": {
+                    "totalOwed": updated_total_owed - original_total_owed,
+                    "totalPaid": updated_total_paid - original_total_paid,
+                    "outstanding_balance": outstanding_balance_adjustment,
+                },
+                "$set": {
+                    "updated_at": DateTime::now(),
+                }
+            },
+        )
+        .session(&mut session)
+        .await
+    {
+        session.abort_transaction().await.ok();
+        logger::log_error(
+            &format!(
+                "Failed to update client with ID: {} for Invoice ID: {}",
+                updated_invoice.client_id,
+                updated_invoice.id.unwrap_or_default()
+            ),
+            500,
+            Some(&e.to_string()),
+        );
+        return Err(ErrorResponse::new(
+            500,
+            "Failed to update client.",
+            Some(e.to_string()),
+        ));
+    }
+
+    // Update the invoice
     match invoice_collection
         .find_one_and_replace(doc! { "_id": id }, updated_invoice)
         .session(&mut session)
@@ -463,7 +605,6 @@ pub async fn update_invoice_by_id(
         Err(e) => {
             session.abort_transaction().await.ok();
             logger::log_error(&e.to_string(), 500, None);
-
             return Err(ErrorResponse::new(500, &e.to_string(), None))?;
         }
     }
@@ -471,14 +612,71 @@ pub async fn update_invoice_by_id(
     // Commit the transaction
     session.commit_transaction().await.map_err(|e| {
         logger::log_error(&format!("Failed to commit transaction: {}", e), 500, None);
-
         ErrorResponse::new(500, &format!("Failed to commit transaction: {}", e), None)
     })?;
+
     logger::log_info(
-        &format!("Update invoice wiht ID: {}", invoice_id),
-        500,
+        &format!("Updated invoice with ID: {}", invoice_id),
+        200,
         None,
     );
 
     Ok(())
+}
+
+#[tauri::command]
+pub async fn list_all_invoices_with_client_id(
+    client_id: String,
+    db: State<'_, Mutex<MongoDbState>>,
+) -> AppResult<Vec<Invoice>> {
+    let db = db.lock().await;
+    let invoice_collection = db.get_collection::<Invoice>(Collection::Invoice);
+
+    // Convert client_id to ObjectId
+    let client_object_id = parse_object_id(&client_id, "Client")?;
+
+    // Query for invoices with the specified client_id
+    let filter = doc! { "clientId": client_object_id };
+
+    let mut cursor = invoice_collection.find(filter).await.map_err(|e| {
+        logger::log_error(
+            &format!("Failed to fetch invoices for client ID: {}", client_id),
+            500,
+            Some(&e.to_string()),
+        );
+        ErrorResponse::new(500, "Failed to fetch invoices.", Some(e.to_string()))
+    })?;
+
+    let mut invoices = Vec::new();
+    while let Some(invoice_doc) = cursor.next().await {
+        match invoice_doc {
+            Ok(invoice) => {
+                invoices.push(invoice);
+            }
+            Err(e) => {
+                logger::log_error(
+                    &format!("Error processing invoice document: {}", e),
+                    500,
+                    Some(&e.to_string()),
+                );
+                return Err(ErrorResponse::new(
+                    500,
+                    "Error processing invoice document.",
+                    Some(e.to_string()),
+                ));
+            }
+        }
+    }
+
+    logger::log_info(
+        &format!(
+            "Fetched {} invoices for client ID: {}",
+            invoices.len(),
+            client_id
+        ),
+        200,
+        None,
+    );
+
+    Ok(invoices)
 }

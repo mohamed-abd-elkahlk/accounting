@@ -10,12 +10,14 @@ use commands::{
         activate_client, add_new_client, deactive_client, find_client_by_id, list_all_clients,
         update_client,
     },
-    invoice_command::{create_invoice, get_invoice_by_id, list_all_invoices, update_invoice_by_id},
+    invoice_command::{
+        create_invoice, get_invoice_by_id, list_all_invoices, list_all_invoices_with_client_id,
+        update_invoice_by_id,
+    },
     product_command::{
         create_product, delete_product, get_all_products, get_product_by_id, update_product,
     },
 };
-//  delete_invoice, get_all_invoices, get_invoice_by_id, update_invoice,
 use db::init_db;
 use dotenvy::dotenv;
 use logger::setup_logger;
@@ -57,7 +59,8 @@ fn main() {
                     create_invoice,
                     list_all_invoices,
                     get_invoice_by_id,
-                    update_invoice_by_id
+                    update_invoice_by_id,
+                    list_all_invoices_with_client_id
                 ])
                 .run(tauri::generate_context!())
                 .expect("Error while running Tauri application");

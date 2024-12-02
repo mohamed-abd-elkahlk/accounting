@@ -17,8 +17,11 @@ pub struct Client {
     pub status: ClinetStatus,
     // Financial fields
     pub invoices: Vec<ObjectId>,
-    pub total_owed: f64,          // Total amount the client owes
-    pub total_paid: f64,          // Total amount the client has paid
+    #[serde(rename = "totalOwed")]
+    pub total_owed: f64, // Total amount the client owes
+    #[serde(rename = "totalPaid")]
+    pub total_paid: f64, // Total amount the client has paid
+    #[serde(rename = "outstandingBalance")]
     pub outstanding_balance: f64, // Outstanding balance to be paid
 
     // Date fields

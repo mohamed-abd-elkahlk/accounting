@@ -17,6 +17,7 @@ import {
   getCLientById,
   getInvoiceById,
   getProductById,
+  getTheClientInvices,
   updateCLientById,
   updateInvoiceById,
   updateProductById,
@@ -38,6 +39,26 @@ export const useCreateNewClient = () => {
       });
     },
   });
+};
+
+export const useClientAndInvoices = (clientId: string) => {
+  const clientQuery = useQuery({
+    queryKey: [QUERY_KEYS.GET_ClINET_BY_ID, clientId],
+    queryFn: () => getCLientById(clientId),
+  });
+
+  const invoicesQuery = useQuery({
+    queryKey: [QUERY_KEYS.CLIENT_INVOICES, clientId],
+    queryFn: () => getTheClientInvices(clientId),
+    enabled: !!clientQuery.data, // Run only if client data is available
+  });
+
+  return {
+    client: clientQuery.data,
+    invoices: invoicesQuery.data,
+    isLoading: clientQuery.isLoading || invoicesQuery.isLoading,
+    isError: clientQuery.isError || invoicesQuery.isError,
+  };
 };
 export const useUpdateClient = (clientId: string) => {
   const queryClient = useQueryClient();

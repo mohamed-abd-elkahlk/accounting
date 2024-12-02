@@ -30,6 +30,29 @@ export async function createNewClient(client: NewClient): Promise<Client> {
     throw new QueryError(errorMessage, errorCode, errorDetails);
   }
 }
+export async function getTheClientInvices(
+  clientId: string
+): Promise<Array<Invoice>> {
+  try {
+    // Make the Tauri command call
+    const data = await invoke<Array<Invoice>>(
+      "list_all_invoices_with_client_id",
+      {
+        clientId,
+      }
+    );
+    return data;
+  } catch (error: any) {
+    console.log(error);
+
+    // Handle error and re-throw as QueryError
+    const errorMessage = error.message || "An unknown error occurred";
+    const errorCode = error.code || 500; // Default to 500 if code is not provided
+    const errorDetails = error.details || null;
+
+    throw new QueryError(errorMessage, errorCode, errorDetails);
+  }
+}
 
 export async function getAllClients(): Promise<Array<Client>> {
   try {

@@ -16,14 +16,23 @@ import ClientsSkeleton from "@/components/skeleton/ClientSkeleton";
 import ErrorResponsePage from "@/components/shared/ErrorResponsePage";
 
 export default function Clients() {
-  const totalOwedByMe = 10000;
-  const totalOwedToMe = 7500;
+  // Calculate totals dynamically
+
   const [searchTerm, setSearchTerm] = useState("");
   const { data: clients, isPending, error } = useGetClinets();
 
   const filteredClients = clients?.filter((client: Client) =>
     client.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalOwedToMe =
+    clients?.reduce((sum, client) => sum + (client.totalOwed || 0), 0) || 0;
+  const totalOwedByMe =
+    clients?.reduce(
+      (sum, client) => sum + (client.outstandingBalance || 0),
+      0
+    ) || 0;
+
   if (isPending) return <ClientsSkeleton />;
   // TODO: add error message view
   if (error) return <ErrorResponsePage error={error} />;
