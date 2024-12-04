@@ -5,39 +5,41 @@ import ErrorResponsePage from "@/components/shared/ErrorResponsePage";
 import NewProduct from "@/components/shared/NewProduct";
 import StoreSkeleton from "@/components/skeleton/StoreSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo } from "react";
 import { FaBox, FaDollarSign } from "react-icons/fa";
 
 export default function Sotre() {
-  const { data: products, error, isPending } = useGetProducts();
+  const { data: products = [], error, isPending } = useGetProducts();
 
+  const productStats = useMemo(() => {
+    // Calculate stats
+    const totalProducts = products.length;
+    const totalProductValue = products.reduce(
+      (total, product) => total + product.price * product.stock,
+      0
+    );
+
+    // Stat cards data
+    return [
+      {
+        title: "Total Products",
+        value: totalProducts,
+        icon: <FaBox />,
+        color: "bg-blue-100 text-blue-600",
+      },
+      {
+        title: "Total Product Value",
+        value: new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(totalProductValue),
+        icon: <FaDollarSign />,
+        color: "bg-green-100 text-green-600",
+      },
+    ];
+  }, [products]); // Dependency array to recalculate when `products` changes
   if (error) return <ErrorResponsePage error={error} />;
   if (isPending) return <StoreSkeleton />;
-
-  // Calculate stats
-  const totalProducts = products.length;
-  const totalProductValue = products.reduce(
-    (total, product) => total + product.price * product.stock,
-    0
-  );
-
-  // Stat cards data
-  const productStats = [
-    {
-      title: "Total Products",
-      value: totalProducts,
-      icon: <FaBox />,
-      color: "bg-blue-100 text-blue-600",
-    },
-    {
-      title: "Total Product Value",
-      value: new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(totalProductValue),
-      icon: <FaDollarSign />,
-      color: "bg-green-100 text-green-600",
-    },
-  ];
 
   return (
     <div className="px-4 md:px-16 py-8 w-full">

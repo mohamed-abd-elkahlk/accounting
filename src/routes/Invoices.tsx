@@ -15,10 +15,8 @@ import {
 } from "react-icons/fa";
 
 export default function Invoices() {
-  const { data: invoices, isPending, error } = useGetInvoices();
-  if (!invoices) {
-    return null;
-  }
+  const { data: invoices = [], isPending, error } = useGetInvoices();
+
   // Memoized stats calculation
   const invoiceStats = useMemo(() => {
     const totalInvoices = invoices.length;
