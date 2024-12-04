@@ -3,6 +3,7 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
+  useQueries,
   // useInfiniteQuery,
 } from "@tanstack/react-query";
 import {
@@ -42,22 +43,33 @@ export const useCreateNewClient = () => {
 };
 
 export const useClientAndInvoices = (clientId: string) => {
-  const clientQuery = useQuery({
-    queryKey: [QUERY_KEYS.GET_ClINET_BY_ID, clientId],
-    queryFn: () => getCLientById(clientId),
+  const queryResults = useQueries({
+    queries: [
+      {
+        queryKey: [QUERY_KEYS.GET_CLIENT_BY_ID, clientId],
+        queryFn: () => getCLientById(clientId),
+        enabled: !!clientId, // Only fetch if clientId is provided
+      },
+      {
+        queryKey: [QUERY_KEYS.CLIENT_INVOICES, clientId],
+        queryFn: () => getTheClientInvices(clientId),
+        enabled: !!clientId, // Only fetch if clientId is provided
+      },
+    ],
   });
 
-  const invoicesQuery = useQuery({
-    queryKey: [QUERY_KEYS.CLIENT_INVOICES, clientId],
-    queryFn: () => getTheClientInvices(clientId),
-    enabled: !!clientQuery.data, // Run only if client data is available
-  });
+  // Destructure individual queries
+  const [clientQuery, invoicesQuery] = queryResults;
 
   return {
-    client: clientQuery.data,
-    invoices: invoicesQuery.data,
+    client: clientQuery.data ?? null, // Ensure a default value
+    invoices: invoicesQuery.data ?? [], // Ensure a default value
     isLoading: clientQuery.isLoading || invoicesQuery.isLoading,
     isError: clientQuery.isError || invoicesQuery.isError,
+    error: {
+      clientError: clientQuery.error,
+      invoicesError: invoicesQuery.error,
+    },
   };
 };
 export const useUpdateClient = (clientId: string) => {
@@ -68,7 +80,7 @@ export const useUpdateClient = (clientId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_CLIENT] });
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_ClINET_BY_ID, clientId],
+        queryKey: [QUERY_KEYS.GET_CLIENT_BY_ID, clientId],
       });
     },
   });
@@ -81,7 +93,7 @@ export const useDeactivateClient = (clientId: string) => {
     mutationFn: () => deactivateClientById(clientId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_ClINET_BY_ID, clientId],
+        queryKey: [QUERY_KEYS.GET_CLIENT_BY_ID, clientId],
       });
     },
     onError: (error) => {
@@ -98,7 +110,7 @@ export const useActivateClient = (clientId: string) => {
     mutationFn: () => activateClientById(clientId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_ClINET_BY_ID, clientId],
+        queryKey: [QUERY_KEYS.GET_CLIENT_BY_ID, clientId],
       });
     },
     onError: (error) => {
@@ -116,7 +128,7 @@ export const useGetClinets = () => {
 export const useGetClinetById = (clientId: string) => {
   return useQuery({
     queryFn: () => getCLientById(clientId),
-    queryKey: [QUERY_KEYS.GET_ClINET_BY_ID, clientId],
+    queryKey: [QUERY_KEYS.GET_CLIENT_BY_ID, clientId],
     enabled: !!clientId,
   });
 };

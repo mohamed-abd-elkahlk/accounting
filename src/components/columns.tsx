@@ -13,8 +13,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useGetClinets } from "@/api/queries";
 import { Invoice, Product } from "@/types";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 
@@ -113,7 +114,23 @@ export const invoiceColumns: ColumnDef<Invoice>[] = [
     header: () => <div>ID</div>,
     cell: ({ row }) => <span>{row.original._id.$oid.slice(4, 11)}...</span>,
   },
+  {
+    accessorKey: "clientId",
+    header: () => <div>Client Name</div>,
+    cell: ({ row }) => {
+      // Fetch clients using the custom hook
+      const { data: clients = [] } = useGetClinets();
 
+      // Create a lookup map of client IDs to names
+      const clientLookup = new Map(
+        clients.map((client) => [client._id.$oid, client.username])
+      );
+
+      const clientId = row.original.clientId.$oid;
+      const clientName = clientLookup.get(clientId) || "Unknown Client";
+      return <span>{clientName}</span>;
+    },
+  },
   {
     accessorKey: "goods",
     header: () => <div>Goods</div>,

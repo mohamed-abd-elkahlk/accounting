@@ -5,8 +5,8 @@ import ErrorResponsePage from "@/components/shared/ErrorResponsePage";
 import NewInvoice from "@/components/shared/NewInvoice";
 import InvoicesSkeleton from "@/components/skeleton/InvoiceSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo } from "react";
 
-import { useState } from "react";
 import {
   FaFileInvoiceDollar,
   FaCheckCircle,
@@ -14,37 +14,67 @@ import {
   FaExclamationCircle,
 } from "react-icons/fa";
 
-// Invoice stats data
-const invoiceStats = [
-  {
-    title: "Total Invoices",
-    value: 120,
-    icon: <FaFileInvoiceDollar />,
-    color: "bg-blue-100 text-blue-600",
-  },
-  {
-    title: "Paid Invoices",
-    value: 80,
-    icon: <FaCheckCircle />,
-    color: "bg-green-100 text-green-600",
-  },
-  {
-    title: "Pending Invoices",
-    value: 30,
-    icon: <FaClock />,
-    color: "bg-yellow-100 text-yellow-600",
-  },
-  {
-    title: "Overdue Invoices",
-    value: 10,
-    icon: <FaExclamationCircle />,
-    color: "bg-red-100 text-red-600",
-  },
-];
-
 export default function Invoices() {
-  const [stats] = useState(invoiceStats);
   const { data: invoices, isPending, error } = useGetInvoices();
+  if (!invoices) {
+    return null;
+  }
+  // Memoized stats calculation
+  const invoiceStats = useMemo(() => {
+    const totalInvoices = invoices.length;
+    const paidInvoices = invoices.filter((inv) => inv.status === "Paid").length;
+    const unpaidInvoices = invoices.filter(
+      (inv) => inv.status === "UnPaid"
+    ).length;
+    const partialPaidInvoices = invoices.filter(
+      (inv) => inv.status === "PartialPaid"
+    ).length;
+
+    const totalPaid = invoices.reduce((sum, inv) => sum + inv.totalPaid, 0);
+    const totalUnpaid = invoices.reduce(
+      (sum, inv) => sum + (inv.totalPrice - inv.totalPaid),
+      0
+    );
+
+    return [
+      {
+        title: "Total Invoices",
+        value: totalInvoices,
+        icon: <FaFileInvoiceDollar />,
+        color: "bg-blue-100 text-blue-600",
+      },
+      {
+        title: "Paid Invoices",
+        value: paidInvoices,
+        icon: <FaCheckCircle />,
+        color: "bg-green-100 text-green-600",
+      },
+      {
+        title: "Unpaid Invoices",
+        value: unpaidInvoices,
+        icon: <FaExclamationCircle />,
+        color: "bg-red-100 text-red-600",
+      },
+      {
+        title: "Partial Paid Invoices",
+        value: partialPaidInvoices,
+        icon: <FaClock />,
+        color: "bg-yellow-100 text-yellow-600",
+      },
+      {
+        title: "Total Paid",
+        value: `$${totalPaid.toFixed(2)}`,
+        icon: <FaCheckCircle />,
+        color: "bg-green-100 text-green-600",
+      },
+      {
+        title: "Total Unpaid",
+        value: `$${totalUnpaid.toFixed(2)}`,
+        icon: <FaExclamationCircle />,
+        color: "bg-red-100 text-red-600",
+      },
+    ];
+  }, [invoices]);
 
   if (isPending) {
     return <InvoicesSkeleton />;
@@ -65,11 +95,11 @@ export default function Invoices() {
 
       {/* Status Cards Section */}
       <div className="p-6 space-y-6">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
+        <div className="flex flex-wrap gap-4">
+          {invoiceStats.map((stat) => (
             <Card
               key={stat.title}
-              className={`shadow-md ${stat.color} rounded-lg`}
+              className={`flex-grow flex-shrink-0 basis-[calc(33.33%-1rem)] max-w-full shadow-md ${stat.color} rounded-lg`}
             >
               <CardHeader>
                 <CardTitle className="flex items-center justify-center space-x-3">
