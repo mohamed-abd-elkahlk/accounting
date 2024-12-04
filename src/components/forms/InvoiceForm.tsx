@@ -263,7 +263,7 @@ export default function InvoiceForm({
                 control={form.control}
                 name={`goods.${index}.productId`}
                 render={({ field }) => (
-                  <FormItem className="flex-1">
+                  <FormItem className="flex-grow">
                     <FormLabel>Product</FormLabel>
                     <Select
                       onValueChange={(value) => {
@@ -282,14 +282,14 @@ export default function InvoiceForm({
                           );
                         }
                       }}
-                      value={field.value}
+                      value={field.value || "Select a product"}
                     >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue>
                             {field.value
                               ? products.find((p) => p._id.$oid === field.value)
-                                  ?.name || "Select a product"
+                                  ?.name
                               : "Select a product"}
                           </SelectValue>
                         </SelectTrigger>
@@ -309,13 +309,13 @@ export default function InvoiceForm({
                   </FormItem>
                 )}
               />
-
               {/* Quantity Field */}
               <FormField
                 control={form.control}
                 name={`goods.${index}.quantity`}
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="w-20">
+                    {/* Adjusted size */}
                     <FormLabel>Quantity</FormLabel>
                     <FormControl>
                       <Input

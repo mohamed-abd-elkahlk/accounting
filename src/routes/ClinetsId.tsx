@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   useActivateClient,
   useDeactivateClient,
@@ -15,7 +15,6 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -56,6 +55,11 @@ export default function ClientDetails() {
     deactivateClientMutation.isSuccess,
     toast,
   ]);
+  const statusStyles = {
+    Paid: "text-green-500",
+    UnPaid: "text-red-500",
+    PartialPaid: "text-yellow-500",
+  };
 
   // Function to determine the badge color based on status
   const getStatusBadge = (status: string) => {
@@ -164,7 +168,7 @@ export default function ClientDetails() {
           <TableHeader>
             <TableRow>
               <TableCell>Invoice ID</TableCell>
-              <TableCell>Status</TableCell>
+              <TableCell className="text-center">Status</TableCell>
               <TableCell>Total Price</TableCell>
               <TableCell>Total Paid</TableCell>
               <TableCell>Date Created</TableCell>
@@ -173,8 +177,24 @@ export default function ClientDetails() {
           <TableBody>
             {invoices?.map((invoice) => (
               <TableRow key={invoice._id.$oid}>
-                <TableCell>{invoice._id.$oid}</TableCell>
-                <TableCell>{invoice.status}</TableCell>
+                <TableCell>
+                  <Link
+                    to={`/invoices/${invoice._id.$oid}`}
+                    className="text-blue-600 underline hover:text-blue-800 transition-colors"
+                  >
+                    {invoice._id.$oid.slice(5, 12)}...
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <span
+                    className={
+                      `font-bold text-center ${statusStyles[invoice.status]}` ||
+                      "text-gray-500"
+                    }
+                  >
+                    {invoice.status}
+                  </span>
+                </TableCell>
                 <TableCell>${invoice.totalPrice.toLocaleString()}</TableCell>
                 <TableCell>${invoice.totalPaid.toLocaleString()}</TableCell>
                 <TableCell>
